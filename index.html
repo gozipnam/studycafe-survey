@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>스터디카페 조사 — 지역 선택</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --paper:#F7F6F2; --card:#FFFFFF; --ink:#1C2530; --ink-soft:#5A6572; --line:#E3E1DA;
+  --target:#0E7A5F; --target-bg:#E7F3EE;
+  --warn:#B07C10; --warn-bg:#FBF3DF;
+  --low:#8A8F98; --low-bg:#EFF0F2;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+.wrap{max-width:1080px;margin:0 auto;padding:24px calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left))}
+
+header{padding:16px 0 8px}
+header h1{font-size:23px;font-weight:800;letter-spacing:-.4px}
+header p{color:var(--ink-soft);font-size:13.5px;margin-top:4px}
+
+/* 전체 요약 스트립 */
+.total-strip{background:var(--ink);color:#fff;border-radius:var(--r);padding:16px 18px;margin:14px 0 20px;display:flex;gap:20px;flex-wrap:wrap}
+.total-strip .tstat{display:flex;flex-direction:column;gap:2px;min-width:90px}
+.total-strip .tstat b{font-size:22px;font-variant-numeric:tabular-nums}
+.total-strip .tstat span{font-size:11.5px;opacity:.7}
+
+/* 지역 카드 그리드 */
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+
+a.region{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;text-decoration:none;color:var(--ink);transition:transform .12s, box-shadow .12s;touch-action:manipulation}
+a.region:active{transform:scale(.985)}
+.r-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.r-name{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.r-count{font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.r-districts{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+.r-progress{margin-top:14px}
+.r-prow{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--ink-soft);margin-bottom:5px}
+.r-prow b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
+.pbar{height:8px;background:var(--low-bg);border-radius:4px;overflow:hidden}
+.pbar>div{height:100%;background:var(--target);border-radius:4px;transition:width .3s;width:0}
+.r-tallies{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.rt{font-size:12px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--ink-soft)}
+.rt b{color:var(--ink);font-variant-numeric:tabular-nums}
+.r-go{margin-top:16px;display:flex;justify-content:flex-end;color:var(--target);font-weight:700;font-size:14px}
+
+/* 준비 중 카드 */
+.region.soon{opacity:.55;pointer-events:none}
+.region.soon .r-go{color:var(--ink-soft)}
+.badge-soon{font-size:11px;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:4px;padding:3px 8px}
+
+footer{margin-top:26px;text-align:center;font-size:12px;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>스터디카페 조사</h1>
+    <p>지역을 선택하세요 — 사물함 점유율 상권분석 · 고스카 전환 타깃 · 비상주 추천</p>
+  </header>
+
+  <div class="total-strip" id="totalStrip"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>조사 데이터는 이 브라우저에 저장됩니다 · 지역별 도구에서 CSV 내보내기 / JSON 백업 가능</footer>
+</div>
+
+<script>
+const REGIONS = [
+  {name:"용인시", path:"yongin/", storageKey:"yongin-studycafe-checklist-v1", total:100, districts:"수지구 52 · 기흥구 38 · 처인구 10", ready:true},
+  {name:"성남시", path:"seongnam/", storageKey:"seongnam-studycafe-checklist-v1", total:84, districts:"분당구 56 · 수정구 14 · 중원구 14", ready:true},
+  {name:"남양주시", path:"namyangju/", storageKey:"namyangju-studycafe-checklist-v1", total:0, districts:"준비 중", ready:false},
+  {name:"안양시", path:"anyang/", storageKey:"anyang-studycafe-checklist-v1", total:0, districts:"준비 중", ready:false},
+];
+
+async function loadState(key){
+  if (window.storage && window.storage.get){
+    try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : {}; }catch(e){ return {}; }
+  }
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : {}; }catch(e){ return {}; }
+}
+function occOf(s){
+  const t = parseInt(s.lockerTotal,10), u = parseInt(s.lockerUsed,10);
+  if(!(t>0) || isNaN(u) || u<0) return null;
+  return Math.min(100, Math.round(u/t*100));
+}
+function statsOf(state){
+  let done=0, targets=0, nonres=0, occSum=0, occN=0;
+  Object.values(state||{}).forEach(s=>{
+    if(!s || typeof s!=="object") return;
+    const o = occOf(s);
+    if(o!==null){ done++; occSum+=o; occN++; }
+    if(s.target) targets++;
+    if(s.nonres) nonres++;
+  });
+  return {done, targets, nonres, avg: occN? Math.round(occSum/occN) : null};
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+(async ()=>{
+  const grid = document.getElementById("grid");
+  let sumTotal=0, sumDone=0, sumTargets=0, sumNonres=0;
+
+  for(const r of REGIONS){
+    const st = r.ready ? statsOf(await loadState(r.storageKey)) : {done:0,targets:0,nonres:0,avg:null};
+    if(r.ready){ sumTotal += r.total; sumDone += st.done; sumTargets += st.targets; sumNonres += st.nonres; }
+    const pct = r.total ? Math.round(st.done/r.total*100) : 0;
+
+    const a = document.createElement("a");
+    a.className = "region"+(r.ready?"":" soon");
+    a.href = r.ready ? r.path : "#";
+    a.innerHTML = `
+      <div class="r-top">
+        <span class="r-name">${esc(r.name)}</span>
+        ${r.ready ? `<span class="r-count">${r.total}곳</span>` : `<span class="badge-soon">준비 중</span>`}
+      </div>
+      <div class="r-districts">${esc(r.districts)}</div>
+      <div class="r-progress">
+        <div class="r-prow"><span>사물함 점유율 조사</span><b>${st.done}/${r.total||"—"}</b></div>
+        <div class="pbar"><div style="width:${pct}%"></div></div>
+      </div>
+      <div class="r-tallies">
+        <span class="rt">🔒 평균 점유율 <b>${st.avg!==null? st.avg+"%":"—"}</b></span>
+        <span class="rt">⭐ 전환타깃 <b>${st.targets}</b></span>
+        <span class="rt">🏠 비상주 추천 <b>${st.nonres}</b></span>
+      </div>
+      <div class="r-go">${r.ready ? "조사 시작 →" : "오픈 예정"}</div>`;
+    grid.appendChild(a);
+  }
+
+  const strip = document.getElementById("totalStrip");
+  const mk = (v,l)=>`<div class="tstat"><b>${v}</b><span>${l}</span></div>`;
+  strip.innerHTML =
+    mk(sumTotal, "전체 매장") +
+    mk(sumDone, "점유율 조사 완료") +
+    mk(sumTargets, "⭐ 전환 타깃") +
+    mk(sumNonres, "🏠 비상주 추천") +
+    mk(REGIONS.filter(r=>r.ready).length + "/" + REGIONS.length, "오픈 지역");
+})();
+</script>
+</body>
+</html>
