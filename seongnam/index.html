@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>성남시 스터디카페 조사 체크리스트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --paper:#F7F6F2; --card:#FFFFFF; --ink:#1C2530; --ink-soft:#5A6572; --line:#E3E1DA;
+  --target:#0E7A5F; --target-bg:#E7F3EE;
+  --warn:#B07C10; --warn-bg:#FBF3DF;
+  --low:#8A8F98; --low-bg:#EFF0F2;
+  --done:#0E7A5F; --doing:#B07C10; --todo:#C9CDD3;
+  --pikko:#C0504D; --zero:#4A6FA5; --goska:#0E7A5F;
+  --danger:#B3403A;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+.wrap{max-width:1080px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left))}
+
+header{padding:18px 0 6px}
+header h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+
+/* summary strip */
+.summary{background:var(--ink);color:#fff;border-radius:var(--r);padding:14px 16px;margin:12px 0}
+.prog-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.prog-row .pct{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.prog-row .lbl{font-size:12px;opacity:.75}
+.bar{height:8px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}
+.bar>div{height:100%;background:var(--target);border-radius:4px;transition:width .3s;width:0}
+.tallies{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tally{background:rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center}
+.tally b{font-variant-numeric:tabular-nums}
+.tally .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* search + filters — 스크롤 시 상단 고정 */
+.toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding:8px 0 4px;margin:8px 0 10px;box-shadow:0 8px 12px -10px rgba(28,37,48,.18)}
+.searchbox{margin:0 0 8px}
+.searchbox input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:16px;font-family:inherit;background:var(--card);color:var(--ink)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:22px;padding:9px 16px;font-size:14px;cursor:pointer;color:var(--ink-soft);font-weight:600;min-height:40px;touch-action:manipulation}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.tg.on{background:var(--target);border-color:var(--target)}
+
+/* area group header */
+.area-head{font-size:12px;font-weight:800;color:var(--ink-soft);letter-spacing:.4px;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
+.area-head .cnt{font-weight:600;opacity:.7}
+
+/* venue card */
+.venue{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.venue.closed{opacity:.55}
+.v-head{display:flex;align-items:center;gap:12px;padding:15px 16px;cursor:pointer;min-height:56px;touch-action:manipulation}
+.v-status{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.v-status.todo{background:var(--todo)}
+.v-status.doing{background:var(--doing)}
+.v-status.done{background:var(--done)}
+.v-main{flex:1;min-width:0}
+.v-name{font-weight:700;font-size:15.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.v-name .star{color:var(--target);font-size:16px}
+.v-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:12px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap}
+.b-district{background:var(--low-bg);color:var(--ink-soft)}
+.b-app-high{background:var(--target-bg);color:var(--target)}
+.b-app-check{background:var(--warn-bg);color:var(--warn)}
+.b-app-low{background:var(--low-bg);color:var(--low)}
+.b-vendor{color:#fff}
+.transit-hint{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.v-toggle{color:var(--ink-soft);font-size:12px;flex-shrink:0;transition:transform .2s}
+.venue.open .v-toggle{transform:rotate(180deg)}
+
+.v-body{display:none;padding:0 14px 14px;border-top:1px dashed var(--line)}
+.venue.open .v-body{display:block}
+.sec-label{font-size:11px;font-weight:800;color:var(--ink-soft);letter-spacing:.5px;margin:14px 0 6px;text-transform:uppercase}
+.note-box{font-size:12.5px;color:var(--ink-soft);margin-top:10px;background:var(--paper);border-radius:6px;padding:8px 10px}
+
+/* quick links */
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.lnk{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;padding:11px 16px;font-size:14px;text-decoration:none;color:var(--ink);font-weight:600;background:var(--paper);min-height:44px;touch-action:manipulation}
+.lnk:active{background:var(--line)}
+.lnk.call{border-color:var(--target);color:var(--target)}
+
+/* checklist */
+.check{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0EFEA;cursor:pointer;user-select:none}
+.check:last-child{border-bottom:none}
+.check input{width:17px;height:17px;accent-color:var(--target);flex-shrink:0}
+.check span{font-size:13.5px}
+.check.ck span{color:var(--ink-soft);text-decoration:line-through}
+
+/* result inputs */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.fld select,.fld input[type=text],.fld textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);min-height:44px}
+.fld textarea{resize:vertical;min-height:64px}
+.pillrow{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink-soft);min-height:44px;touch-action:manipulation}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pill.on.p-target{background:var(--target);border-color:var(--target)}
+.chanrow{display:flex;gap:12px;flex-wrap:wrap}
+.chanrow .check{border:none;padding:4px 0}
+
+.tgbtn{margin-top:14px;width:100%;border:1.5px solid var(--target);background:#fff;color:var(--target);border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:48px;touch-action:manipulation}
+.tgbtn.on{background:var(--target);color:#fff}
+.nrbtn{margin-top:10px;width:100%;border:1.5px solid var(--warn);background:#fff;color:var(--warn);border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:48px;touch-action:manipulation}
+.nrbtn.on{background:var(--warn);color:#fff}
+.b-nr{background:var(--warn-bg);color:var(--warn)}
+.occ-row{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.occ-row b{font-size:20px;font-variant-numeric:tabular-nums}
+.occ-row span{font-size:12px;color:var(--ink-soft)}
+.occbar{height:8px;background:var(--low-bg);border-radius:4px;overflow:hidden;margin-top:4px}
+.occbar>div{height:100%;border-radius:4px;transition:width .25s}
+.occ-none{font-size:12px;color:var(--ink-soft);margin-top:8px}
+.occ-date{margin-left:auto;font-size:11px;color:var(--ink-soft)}
+.hist{margin-top:8px}
+.hist-title{font-size:11px;font-weight:800;color:var(--ink-soft);margin-bottom:2px}
+.hist-row{display:flex;gap:14px;align-items:center;font-size:14px;padding:8px 0;border-bottom:1px solid #F0EFEA}
+.hist-row b{font-variant-numeric:tabular-nums;margin-left:auto}
+.hist-del{border:none;background:none;color:var(--danger);font-size:13px;cursor:pointer;font-family:inherit;padding:8px 10px;min-height:40px;touch-action:manipulation}
+.fld select:disabled{opacity:.45}
+.occbands{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.oband{display:flex;gap:8px;font-size:12px;align-items:baseline;flex-wrap:wrap}
+.oband .ob-label{font-weight:800;white-space:nowrap;min-width:58px}
+.oband .ob-names{display:flex;flex-wrap:wrap;gap:4px}
+.oband .ob-name{background:rgba(255,255,255,.14);border-radius:4px;padding:2px 8px;cursor:pointer}
+.oband .ob-name:active{background:rgba(255,255,255,.3)}
+.oband .ob-note{opacity:.75;font-size:11px}
+.occbands-empty{font-size:11.5px;opacity:.6}
+
+/* footer tools */
+.tools{display:flex;gap:10px;margin:20px 0}
+.tools button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);min-height:48px;touch-action:manipulation}
+.savenote{text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:6px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 22px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+.toast.show{opacity:1}
+.empty{text-align:center;color:var(--ink-soft);padding:30px 0;font-size:14px}
+
+/* 아이패드 미니 가로(1133px) — 카드 2열 배치, 펼친 카드는 전체 폭 */
+@media(min-width:900px){
+  #list{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+  .area-head{grid-column:1 / -1}
+  .empty{grid-column:1 / -1}
+  .venue.open{grid-column:1 / -1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>성남시 스터디카페 조사 체크리스트</h1>
+    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 84곳 · 도보시간 추정치)</p>
+  </header>
+
+  <div class="summary">
+    <div class="prog-row">
+      <span class="lbl">사물함 점유율 조사 진행률</span>
+      <span class="pct"><span id="pDone">0</span>/<span id="pTotal">0</span> 완료</span>
+    </div>
+    <div class="bar"><div id="pBar"></div></div>
+    <div class="occbands" id="occBands"></div>
+    <div class="tallies" id="tallies"></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="searchbox"><input type="text" id="searchInput" placeholder="지점명·브랜드·역 이름 검색 (예: 작심, 동백역)"></div>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div id="list"></div>
+
+  <div class="tools">
+    <button onclick="exportCSV()">CSV 내보내기</button>
+    <button onclick="backupJSON()">백업(JSON)</button>
+    <button onclick="document.getElementById('restoreFile').click()">복원</button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
+  </div>
+  <div class="savenote">입력 내용은 자동 저장됩니다 (이 브라우저 기준)</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 매장 기본 데이터 (73곳) ==========
+   기존 ID는 절대 변경 금지 — 저장된 조사 데이터가 ID에 연결되어 있음 */
+const VENUES = [
+ /* ---------- 분당구 · 서현동(서현역) ---------- */
+ {id:"moim-sh", name:"MOiM 분당서현점", district:"분당구", area:"서현동(서현역)", brand:"독립(스터디룸 중심)", appGuess:"low", phone:"031-8017-3537", transit:"🚇 서현역 도보 3분", note:"스터디룸·회의실 중심, 리뷰 51건", closed:false},
+ {id:"coffeelib-sh", name:"커피랑도서관 분당서현점", district:"분당구", area:"서현동(서현역)", brand:"프랜차이즈(커피랑도서관)", appGuess:"check", phone:"070-4243-1140", transit:"🚇 서현역 도보 3분", note:"24시, 심야 요금 저렴, 리뷰 42건", closed:false},
+ {id:"dodream-sh", name:"스터디카페 두드림", district:"분당구", area:"서현동(서현역)", brand:"독립 추정", appGuess:"low", phone:"010-6330-4711", transit:"🚇 서현역 도보 4분", note:"24시, 관리형 피드백 리뷰", closed:false},
+ {id:"sigansai-sh", name:"시간사이 워크&스터디카페", district:"분당구", area:"서현동(서현역)", brand:"독립 추정", appGuess:"low", phone:"010-7327-2098", transit:"🚇 서현역 도보 10분", note:"24시, 직장인 워크 수요", closed:false},
+ /* ---------- 분당구 · 서현동(시범단지) ---------- */
+ {id:"yeolgong-sh", name:"열공스터디카페 서현점", district:"분당구", area:"서현동(시범단지)", brand:"소규모 체인(열공)", appGuess:"low", phone:"", transit:"🚌 시범단지 정류장", note:"시범우성아파트 상가", closed:false},
+ {id:"golden-sh", name:"골든스터디카페 서현점", district:"분당구", area:"서현동(시범단지)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 시범단지 정류장", note:"유인 10~22시", closed:false},
+ /* ---------- 분당구 · 서현동(효자촌) ---------- */
+ {id:"holic-sh", name:"홀릭스터디카페 (서현 효자촌)", district:"분당구", area:"서현동(효자촌)", brand:"소규모 체인(홀릭)", appGuess:"low", phone:"", transit:"🚌 효자촌 정류장", note:"24시, 시간권 저가", closed:false},
+ {id:"ggsam-bdsh", name:"공간샘 분당서현점", district:"분당구", area:"서현동(효자촌)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-9901-9333", transit:"🚌 효자촌·범한프라자 정류장", note:"24시", closed:false},
+ /* ---------- 분당구 · 분당동 ---------- */
+ {id:"onthedesk-bd", name:"온더데스크 분당독서실&스터디카페", district:"분당구", area:"분당동", brand:"독립 추정", appGuess:"low", phone:"031-703-0979", transit:"🚌 분당동 장안로 정류장", note:"유인 09~01:30, 관리형", closed:false},
+ /* ---------- 분당구 · 수내동(수내역) ---------- */
+ {id:"coffeelib-sn", name:"커피랑도서관 수내점", district:"분당구", area:"수내동(수내역)", brand:"프랜차이즈(커피랑도서관)", appGuess:"check", phone:"", transit:"🚇 수내역 도보 3분", note:"리뷰 20건, 가성비 호평", closed:false},
+ {id:"wpencil-sn", name:"화이트펜슬 분당수내점", district:"분당구", area:"수내동(수내역)", brand:"소규모 체인(화이트펜슬)", appGuess:"low", phone:"010-5500-4345", transit:"🚇 수내역 도보 5분", note:"24시", closed:false},
+ {id:"yeolgong-sn1", name:"열공스터디카페 (수내 궁전쇼핑타운)", district:"분당구", area:"수내동(수내역)", brand:"소규모 체인(열공)", appGuess:"low", phone:"", transit:"🚇 수내역 도보 8분", note:"지하층", closed:false},
+ /* ---------- 분당구 · 수내동 ---------- */
+ {id:"tozs-sn2", name:"토즈스터디센터 수내2독서실", district:"분당구", area:"수내동", brand:"프랜차이즈(토즈)", appGuess:"high", phone:"031-719-2842", transit:"🚌 수내동 동신코아 정류장", note:"토즈 자체 앱 운영 브랜드", closed:false},
+ {id:"yeolgong-sn2", name:"열공스터디카페 수내2호점", district:"분당구", area:"수내동", brand:"소규모 체인(열공)", appGuess:"low", phone:"", transit:"🚌 수내동 그랜드빌딩 인근", note:"", closed:false},
+ /* ---------- 분당구 · 수내동(푸른마을) ---------- */
+ {id:"wpencil-prn", name:"화이트펜슬 수내푸른마을점", district:"분당구", area:"수내동(푸른마을)", brand:"소규모 체인(화이트펜슬)", appGuess:"low", phone:"010-3060-0157", transit:"🚌 푸른마을 정류장", note:"24시", closed:false},
+ {id:"bluemoon-sn", name:"블루문 수내점", district:"분당구", area:"수내동(푸른마을)", brand:"독립 추정", appGuess:"low", phone:"031-712-5530", transit:"🚌 푸른마을 정류장", note:"24시, 복도 소음 리뷰", closed:false},
+ /* ---------- 분당구 · 정자동(정자역) ---------- */
+ {id:"dplace-jj", name:"디플레이스 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 정자역 도보 8분", note:"무인, 음료 유료 불만 리뷰", closed:false},
+ {id:"gongbon-jj", name:"공본 분당정자센터", district:"분당구", area:"정자동(정자역)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-9953-8305", transit:"🚇 정자역 도보 7분", note:"24시, 용인 공본과 동일 브랜드", closed:false},
+ {id:"choisangwi-jj", name:"최상위 관리형 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"010-7604-4882", transit:"🚇 정자역 도보 6분", note:"관리형, 유인 08~01시", closed:false},
+ {id:"giant-jj", name:"거인의어깨 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"031-716-6688", transit:"🚇 정자역 도보 8분", note:"관리형·입시컨설팅 병행", closed:false},
+ /* ---------- 분당구 · 정자동 ---------- */
+ {id:"wpencil-jj", name:"화이트펜슬 분당정자점", district:"분당구", area:"정자동", brand:"소규모 체인(화이트펜슬)", appGuess:"low", phone:"010-3602-9650", transit:"🚇 정자역 도보 9분", note:"24시", closed:false},
+ /* ---------- 분당구 · 정자동(느티마을) ---------- */
+ {id:"lagom-jj", name:"라곰 스터디카페", district:"분당구", area:"정자동(느티마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 정자역 도보 10분", note:"시간당 1,000원 저가형", closed:false},
+ {id:"timeyou-jj", name:"타임유 스터디카페 (정자)", district:"분당구", area:"정자동(느티마을)", brand:"소규모 체인(타임유)", appGuess:"low", phone:"", transit:"🚇 정자역 도보 10분", note:"라곰 옆 건물, 24시", closed:false},
+ /* ---------- 분당구 · 이매동(이매촌) ---------- */
+ {id:"gongbon-im", name:"공본 분당이매센터", district:"분당구", area:"이매동(이매촌)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-6523-8745", transit:"🚇 서현역 도보 8분", note:"24시", closed:false},
+ {id:"oz24-im", name:"오즈24 스터디센터 (구 이매독서실)", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"031-704-8266", transit:"🚇 서현역 도보 8분", note:"독서실 전환형", closed:false},
+ {id:"thelib-im", name:"더라이브러리", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 이매역 도보 10분", note:"유인 10~22시, 시간당 1,500원", closed:false},
+ {id:"plant-im", name:"스터디카페 플랜트", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 이매역 도보 10분", note:"더라이브러리와 같은 골목", closed:false},
+ /* ---------- 분당구 · 이매동 ---------- */
+ {id:"ida-im", name:"스터디카페 이다", district:"분당구", area:"이매동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 이매역 도보 5분", note:"", closed:false},
+ /* ---------- 분당구 · 이매동(아름마을) ---------- */
+ {id:"ggsam-im", name:"공간샘 분당이매점", district:"분당구", area:"이매동(아름마을)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"", transit:"🚌 아름마을 정류장", note:"24시, 약 90석, 집중존·음악존 분리", closed:false},
+ {id:"wefirst-im", name:"위퍼스트 이매야탑점", district:"분당구", area:"이매동(아름마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 아름마을 정류장", note:"공간샘 옆 건물", closed:false},
+ {id:"ellim-im", name:"엘림스터디카페 (아름마을)", district:"분당구", area:"이매동(아름마을)", brand:"소규모 체인(엘림)", appGuess:"low", phone:"", transit:"🚌 아름마을 정류장", note:"유인 10~22:30, 시설 노후 리뷰", closed:false},
+ {id:"newton-im", name:"뉴턴 관리형 스터디카페", district:"분당구", area:"이매동(아름마을)", brand:"독립 추정", appGuess:"low", phone:"010-5623-0649", transit:"🚌 아름마을 정류장", note:"관리형, 출결 관리 엄격", closed:false},
+ {id:"studyncafe-im", name:"스터디엔카페 (이매)", district:"분당구", area:"이매동(아름마을)", brand:"소규모 체인(스터디엔카페)", appGuess:"low", phone:"031-708-0982", transit:"🚌 아름마을 정류장", note:"유인 10~22시", closed:false},
+ /* ---------- 분당구 · 야탑동(야탑역) ---------- */
+ {id:"coffeelib-yt", name:"커피랑도서관 분당야탑역점", district:"분당구", area:"야탑동(야탑역)", brand:"프랜차이즈(커피랑도서관)", appGuess:"check", phone:"070-8818-1140", transit:"🚇 야탑역 도보 3분", note:"리뷰 30건, 심야 무인 전환(지문등록)", closed:false},
+ /* ---------- 분당구 · 야탑동 ---------- */
+ {id:"olla-yt", name:"올라스터디카페 야탑점", district:"분당구", area:"야탑동", brand:"소규모 체인(올라)", appGuess:"low", phone:"", transit:"🚇 야탑역 도보 10분", note:"용인 올라와 동일 브랜드", closed:false},
+ /* ---------- 분당구 · 야탑동(장미마을) ---------- */
+ {id:"assem-yt", name:"ASSEM 스터디카페", district:"분당구", area:"야탑동(장미마을)", brand:"독립 추정", appGuess:"low", phone:"010-7914-2722", transit:"🚌 장미마을 정류장", note:"24시", closed:false},
+ /* ---------- 분당구 · 야탑동(매화마을) ---------- */
+ {id:"azit-yt", name:"스터디아지트 야탑", district:"분당구", area:"야탑동(매화마을)", brand:"독립 추정", appGuess:"low", phone:"010-5066-2001", transit:"🚌 매화마을 정류장", note:"24시 무인, 저가형", closed:false},
+ {id:"sky-yt", name:"스카이스터디카페", district:"분당구", area:"야탑동(매화마을)", brand:"독립 추정", appGuess:"low", phone:"010-9967-9114", transit:"🚌 매화마을 정류장", note:"아지트와 같은 상가군, 07~01시", closed:false},
+ /* ---------- 분당구 · 판교(판교역) ---------- */
+ {id:"partyn-pg", name:"파티앤스터디 판교점", district:"분당구", area:"판교(판교역)", brand:"독립(복합공간)", appGuess:"low", phone:"010-8199-2146", transit:"🚇 판교역 도보 3분", note:"파티룸+스터디룸 복합, 힐스테이트 상가 지하", closed:false},
+ /* ---------- 분당구 · 판교(봇들마을) ---------- */
+ {id:"dongpg-lib", name:"동판교독서실 (삼평동)", district:"분당구", area:"판교(봇들마을)", brand:"독립 추정", appGuess:"low", phone:"031-701-0806", transit:"🚇 판교역 도보 12분", note:"가격 불만 리뷰 다수", closed:false},
+ /* ---------- 분당구 · 판교(백현동) ---------- */
+ {id:"yeolgong-pg", name:"열공스터디카페 판교점", district:"분당구", area:"판교(백현동)", brand:"소규모 체인(열공)", appGuess:"low", phone:"", transit:"🚌 백현마을 정류장", note:"", closed:false},
+ /* ---------- 분당구 · 서판교(판교동) ---------- */
+ {id:"gongbon-wpg2", name:"공본 서판교2센터", district:"분당구", area:"서판교(판교동)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-3187-1810", transit:"🚌 판교동 정류장", note:"24시", closed:false},
+ /* ---------- 분당구 · 서판교(운중동) ---------- */
+ {id:"bion-pg", name:"비온탑 스터디카페 판교점", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"010-5957-5100", transit:"🚌 운중동 리버스토리 정류장", note:"24시", closed:false},
+ {id:"gbgg-uj", name:"공부공간 스터디카페", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"031-705-5501", transit:"🚌 운중동 스타타워 정류장", note:"24시", closed:false},
+ {id:"gbgb-uj", name:"공부공방독서실", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"031-705-5554", transit:"🚌 운중동 스타타워 정류장", note:"공부공간과 같은 건물, 1일권 12,000원", closed:false},
+ {id:"jss-uj", name:"제이에스 스터디라운지", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"031-698-4785", transit:"🚌 운중동 KPGA빌딩 정류장", note:"", closed:false},
+ /* ---------- 분당구 · 금곡동(미금역) ---------- */
+ {id:"jaksim-mg", name:"작심 분당미금점", district:"분당구", area:"금곡동(미금역)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"010-9350-9473", transit:"🚇 미금역 도보 2분", note:"작심 자체 앱 운영 브랜드", closed:false},
+ {id:"tozs-mg", name:"토즈 미금스터디센터", district:"분당구", area:"금곡동(미금역)", brand:"프랜차이즈(토즈)", appGuess:"high", phone:"031-786-0303", transit:"🚇 미금역 도보 4분", note:"토즈 자체 앱 운영 브랜드", closed:false},
+ {id:"beable-mg", name:"비에이블 분당미금센터", district:"분당구", area:"금곡동(미금역)", brand:"소규모 체인(비에이블)", appGuess:"low", phone:"010-2524-8866", transit:"🚇 미금역 도보 5분", note:"용인 비에이블과 동일 브랜드, 유인 09~22시", closed:false},
+ {id:"gongbon-mg", name:"공본 분당미금역센터", district:"분당구", area:"금곡동(미금역)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-6606-1917", transit:"🚇 미금역 도보 5분", note:"24시", closed:false},
+ /* ---------- 분당구 · 금곡동(청솔마을) ---------- */
+ {id:"sngg-bd", name:"시간과공간 분당센터", district:"분당구", area:"금곡동(청솔마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 청솔마을 정류장", note:"용인 시간과공간과 동일 브랜드", closed:false},
+ /* ---------- 분당구 · 구미동(오리역) ---------- */
+ {id:"orilab-or", name:"오리 스터디랩", district:"분당구", area:"구미동(오리역)", brand:"독립 추정", appGuess:"low", phone:"010-9534-2536", transit:"🚇 오리역 도보 2분", note:"09~24시", closed:false},
+ /* ---------- 분당구 · 구미동 ---------- */
+ {id:"sizak-gm", name:"시작 분당구미점", district:"분당구", area:"구미동", brand:"프랜차이즈(시작)", appGuess:"check", phone:"", transit:"🚌 무지개마을 정류장 (오리역 도보 12분)", note:"24시, 용인 시작과 동일 브랜드", closed:false},
+ {id:"jaksim-gm", name:"작심 분당구미점", district:"분당구", area:"구미동", brand:"프랜차이즈(작심)", appGuess:"high", phone:"031-711-0912", transit:"🚌 무지개마을 정류장", note:"", closed:false},
+ {id:"challenge-gm", name:"챌린지 분당구미동센터", district:"분당구", area:"구미동", brand:"소규모 체인(챌린지)", appGuess:"low", phone:"", transit:"🚌 무지개마을 정류장", note:"", closed:false},
+ {id:"pops-gm", name:"팝스스터디카페 (구미동)", district:"분당구", area:"구미동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 무지개마을 정류장", note:"용인 팝스와 동일 브랜드 추정", closed:false},
+ /* ---------- 수정구 · 태평동(가천대역) ---------- */
+ {id:"baron-tp", name:"바론 스터디카페", district:"수정구", area:"태평동(가천대역)", brand:"독립 추정", appGuess:"low", phone:"010-4745-4025", transit:"🚇 가천대역 도보 2분", note:"24시, 리뷰 15건 호평, 가천대 상권", closed:false},
+ /* ---------- 수정구 · 태평동(태평역) ---------- */
+ {id:"seldo-tp", name:"셀도24 태평점", district:"수정구", area:"태평동(태평역)", brand:"소규모 체인(셀도24)", appGuess:"low", phone:"010-4214-2822", transit:"🚇 태평역 도보 4분", note:"24시 무인", closed:false},
+ {id:"oneuldo-tp", name:"오늘도스터디카페", district:"수정구", area:"태평동(태평역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 태평역 도보 3분", note:"", closed:false},
+ /* ---------- 수정구 · 신흥동(수정구청) ---------- */
+ {id:"reading-sj", name:"리딩스터디카페", district:"수정구", area:"신흥동(수정구청)", brand:"독립 추정", appGuess:"low", phone:"010-4704-7477", transit:"🚇 8호선 신흥역 도보 8분", note:"06~02시, 스카이라운지석 특화, 신축", closed:false},
+ /* ---------- 수정구 · 신흥동 ---------- */
+ {id:"hear-sh", name:"히어스터디카페 신흥동점", district:"수정구", area:"신흥동", brand:"독립 추정", appGuess:"low", phone:"010-8201-2372", transit:"🚇 신흥역 도보 10분", note:"06~01시", closed:false},
+ /* ---------- 수정구 · 수진동 ---------- */
+ {id:"chosim-tp", name:"초심 성남태평역점", district:"수정구", area:"수진동", brand:"소규모 체인(초심)", appGuess:"low", phone:"", transit:"🚇 태평역 도보 10분", note:"용인 초심과 동일 브랜드", closed:false},
+ /* ---------- 수정구 · 단대동 ---------- */
+ {id:"wisdom-dd", name:"위즈덤스터디카페", district:"수정구", area:"단대동", brand:"독립 추정", appGuess:"low", phone:"050-71472-3436", transit:"🚇 단대오거리역 도보 10분", note:"07~01시", closed:false},
+ /* ---------- 수정구 · 산성동 ---------- */
+ {id:"dalbit-ss", name:"달빛산성스터디카페", district:"수정구", area:"산성동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 산성역 도보 7분", note:"재개발 구역 인근 — 운영 확인 필요", closed:false},
+ /* ---------- 수정구 · 양지동 ---------- */
+ {id:"seldo-nhs", name:"셀도24 남한산성입구역점", district:"수정구", area:"양지동", brand:"소규모 체인(셀도24)", appGuess:"low", phone:"", transit:"🚇 남한산성입구역 도보 5분", note:"24시 무인", closed:false},
+ /* ---------- 수정구 · 위례(창곡동) ---------- */
+ {id:"chakhan-wr", name:"위례착한스터디카페", district:"수정구", area:"위례(창곡동)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 위례 메디타운 정류장 (남위례역 버스 환승)", note:"07~02시, 1인실 보유, 메디타운 10층", closed:false},
+ {id:"seldo-wr", name:"셀도24 위례점", district:"수정구", area:"위례(창곡동)", brand:"소규모 체인(셀도24)", appGuess:"low", phone:"", transit:"🚌 위례 메디타운 정류장", note:"착한스터디카페와 같은 건물, 온도 불만 리뷰", closed:false},
+ {id:"plana-wr", name:"플랜에이 위례센터", district:"수정구", area:"위례(창곡동)", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"050-71363-1602", transit:"🚌 위례동로 정류장", note:"06~02시, 용인 플랜에이와 동일 브랜드", closed:false},
+ /* ---------- 수정구 · 위례(중앙광장) ---------- */
+ {id:"chosim-wr", name:"초심 위례점", district:"수정구", area:"위례(중앙광장)", brand:"소규모 체인(초심)", appGuess:"low", phone:"", transit:"🚌 위례중앙광장 정류장", note:"24시", closed:false},
+ {id:"ellim-wr", name:"엘림 관리형스터디센터 위례점", district:"수정구", area:"위례(중앙광장)", brand:"소규모 체인(엘림)", appGuess:"low", phone:"010-5656-4331", transit:"🚌 위례중앙광장 정류장", note:"관리형, 유인 09~23시", closed:false},
+ /* ---------- 중원구 · 성남동(모란역) ---------- */
+ {id:"oreum-mr", name:"오름스터디카페", district:"중원구", area:"성남동(모란역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 모란역 도보 2분", note:"유인 09:30~23시", closed:false},
+ /* ---------- 중원구 · 성남동 ---------- */
+ {id:"adream-jw", name:"스터디카페 에이드림 중원구청점", district:"중원구", area:"성남동", brand:"독립 추정", appGuess:"low", phone:"010-5522-5762", transit:"🚌 중원구청 정류장 (모란역 도보 10분)", note:"24시, 안면인식 입장", closed:false},
+ /* ---------- 중원구 · 여수동(성남시청) ---------- */
+ {id:"awesome-sc", name:"어썸덕스터디카페", district:"중원구", area:"여수동(성남시청)", brand:"독립 추정", appGuess:"low", phone:"050-71355-0013", transit:"🚌 성남시청 정류장", note:"09~02시 무인, 스카이프라자 10층", closed:false},
+ /* ---------- 중원구 · 도촌·여수동 ---------- */
+ {id:"onthedesk-jw", name:"온더데스크 (양현로)", district:"중원구", area:"도촌·여수동", brand:"독립 추정", appGuess:"low", phone:"031-752-2400", transit:"🚌 성남시청·도촌동 정류장", note:"업종 확인 필요", closed:false},
+ /* ---------- 중원구 · 도촌동 ---------- */
+ {id:"holic-dc", name:"홀릭 (도촌동)", district:"중원구", area:"도촌동", brand:"소규모 체인(홀릭)", appGuess:"low", phone:"070-4670-7029", transit:"🚌 도촌지구 정류장", note:"유인 10~22시", closed:false},
+ /* ---------- 중원구 · 하대원동 ---------- */
+ {id:"levelup-hdw", name:"레벨업 스터디카페 하대원점", district:"중원구", area:"하대원동", brand:"독립 추정", appGuess:"low", phone:"050-71350-4969", transit:"🚌 하대원동 정류장", note:"24시, 하대원 유일 신축 — 리뷰 호평", closed:false},
+ /* ---------- 중원구 · 상대원동 ---------- */
+ {id:"jaksim-sdw", name:"작심 성남상대원점", district:"중원구", area:"상대원동", brand:"프랜차이즈(작심)", appGuess:"high", phone:"031-735-0910", transit:"🚌 상대원 학년쇼핑 정류장", note:"", closed:false},
+ /* ---------- 중원구 · 금광동(단대오거리) ---------- */
+ {id:"genie24-dd", name:"지니24 단대오거리역점", district:"중원구", area:"금광동(단대오거리)", brand:"독립 추정", appGuess:"low", phone:"010-7249-9753", transit:"🚇 단대오거리역 도보 2분", note:"24시, 라운지 특화", closed:false},
+ {id:"bandi-dd", name:"반디서원 24시 단대오거리역점", district:"중원구", area:"금광동(단대오거리)", brand:"독립 추정", appGuess:"low", phone:"010-2005-5475", transit:"🚇 단대오거리역 도보 5분", note:"24시", closed:false},
+ /* ---------- 중원구 · 금광동(신구대) ---------- */
+ {id:"didim-dd", name:"디딤 단대오거리역센터", district:"중원구", area:"금광동(신구대)", brand:"독립(디딤 체인)", appGuess:"low", phone:"010-5344-0155", transit:"🚇 단대오거리역 도보 12분 · 🚌 신구대 정류장", note:"24시, 용인 디딤과 동일 브랜드", closed:false},
+ {id:"manjeom-gg", name:"만점24 성남점", district:"중원구", area:"금광동(신구대)", brand:"독립 추정", appGuess:"low", phone:"031-778-8150", transit:"🚌 신구대학교 정류장", note:"", closed:false},
+ {id:"holic-sgd", name:"홀릭 신구대점", district:"중원구", area:"금광동(신구대)", brand:"소규모 체인(홀릭)", appGuess:"low", phone:"", transit:"🚌 신구대학교 정류장", note:"만점24 옆 건물", closed:false},
+ /* ---------- 중원구 · 은행동 ---------- */
+ {id:"153-eh", name:"153스터디카페", district:"중원구", area:"은행동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 은행동 정류장", note:"", closed:false},
+ {id:"holic-eh", name:"홀릭 (은행동)", district:"중원구", area:"은행동", brand:"소규모 체인(홀릭)", appGuess:"low", phone:"", transit:"🚌 은행시장 정류장", note:"", closed:false},
+];
+
+const VENDORS = ["미확인","고스카","스터디모아","스터디큐브","와우플","자체 앱(프랜차이즈)","제로아이즈","픽코","SSAMCAFE","기타"];
+const VENDOR_COLOR = {"픽코":"var(--pikko)","제로아이즈":"var(--zero)","고스카":"var(--goska)","와우플":"#B07C10","SSAMCAFE":"#7A5C3E","스터디모아":"#4E8098","스터디큐브":"#8E5BA6","자체 앱(프랜차이즈)":"#6B5CA5","기타":"#8A8F98"};
+const APP_GUESS_BADGE = {high:["앱 가능성 높음","b-app-high"], check:["앱 확인 필요","b-app-check"], low:["앱 가능성 낮음","b-app-low"], own:["자사 지점","b-app-high"]};
+
+/* ========== 저장 어댑터 (window.storage → localStorage 폴백) ========== */
+const SKEY = "seongnam-studycafe-checklist-v1";
+const Storage = {
+  async load(){
+    if (window.storage && window.storage.get){
+      for (let i=0;i<3;i++){
+        try{ const r = await window.storage.get(SKEY); return r ? JSON.parse(r.value) : {}; }
+        catch(e){ if(i===2) break; await new Promise(s=>setTimeout(s, 300*(i+1))); }
+      }
+      return {};
+    }
+    try{ const v = localStorage.getItem(SKEY); return v ? JSON.parse(v) : {}; }catch(e){ return {}; }
+  },
+  async save(data){
+    const str = JSON.stringify(data);
+    if (window.storage && window.storage.set){
+      for (let i=0;i<3;i++){
+        try{ await window.storage.set(SKEY, str); return true; }
+        catch(e){ if(i===2) return false; await new Promise(s=>setTimeout(s, 300*(i+1))); }
+      }
+    }
+    try{ localStorage.setItem(SKEY, str); return true; }catch(e){ return false; }
+  }
+};
+
+/* ========== 상태 ========== */
+let state = {};
+let filter = {district:"전체", status:"전체", targetOnly:false, nonresOnly:false, sortOcc:false, q:""};
+let saveTimer = null;
+
+function vs(id){
+  if(!state[id]) state[id] = {appResult:"미확인", vendor:"미확인", target:false, nonres:false, lockerTotal:"", lockerUsed:"", memo:"", status:"todo"};
+  const s = state[id];
+  if(s.lockerTotal===undefined) s.lockerTotal="";
+  if(s.lockerUsed===undefined) s.lockerUsed="";
+  if(s.lockerDate===undefined) s.lockerDate="";
+  if(!Array.isArray(s.lockerHistory)) s.lockerHistory=[];
+  if(s.nonres===undefined) s.nonres=false;
+  return s;
+}
+function lockerOcc(s){
+  const t = parseInt(s.lockerTotal,10), u = parseInt(s.lockerUsed,10);
+  if(!(t>0) || isNaN(u) || u<0) return null;
+  return Math.min(100, Math.round(u/t*100));
+}
+function occColor(p){
+  if(p>=70) return {bg:"var(--target-bg)", fg:"var(--target)", bar:"var(--target)"};
+  if(p>=40) return {bg:"var(--warn-bg)", fg:"var(--warn)", bar:"var(--warn)"};
+  return {bg:"var(--low-bg)", fg:"var(--low)", bar:"var(--low)"};
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    const ok = await Storage.save(state);
+    if(!ok) toast("저장 실패 — 백업(JSON)을 권장합니다");
+  }, 400);
+}
+function calcStatus(s){
+  if(lockerOcc(s)!==null) return "done";
+  if (s.vendor!=="미확인" || s.appResult!=="미확인" || s.target || s.nonres || (s.memo||"").trim()) return "doing";
+  return "todo";
+}
+function matchQuery(v){
+  if(!filter.q) return true;
+  const q = filter.q.toLowerCase();
+  return (v.name+" "+v.brand+" "+v.area+" "+(v.transit||"")+" "+(v.note||"")).toLowerCase().includes(q);
+}
+
+/* ========== 렌더 ========== */
+function render(){
+  renderSummary();
+  renderFilters();
+  renderList();
+}
+
+function renderSummary(){
+  const active = VENUES.filter(v=>!v.closed);
+  const done = active.filter(v=>calcStatus(vs(v.id))==="done").length;
+  document.getElementById("pDone").textContent = done;
+  document.getElementById("pTotal").textContent = active.length;
+  document.getElementById("pBar").style.width = active.length? (done/active.length*100)+"%" : "0";
+
+  const counts = {};
+  VENDORS.slice(1).forEach(x=>counts[x]=0);
+  let targets=0, nonres=0, occSum=0, occN=0;
+  VENUES.forEach(v=>{
+    const s = vs(v.id);
+    if(counts[s.vendor]!==undefined) counts[s.vendor]++;
+    if(s.target) targets++;
+    if(s.nonres) nonres++;
+    const o = lockerOcc(s);
+    if(o!==null){ occSum+=o; occN++; }
+  });
+  const t = document.getElementById("tallies");
+  t.innerHTML = "";
+  const mk = (label,val,color)=>{
+    const d = document.createElement("div"); d.className="tally";
+    d.innerHTML = (color?`<span class="dot" style="background:${color}"></span>`:"")+`${label} <b>${val}</b>`;
+    return d;
+  };
+  t.appendChild(mk("🔒 평균 점유율", occN? Math.round(occSum/occN)+"% ("+occN+"곳)" : "—", null));
+  t.appendChild(mk("⭐ 전환타깃", targets, null));
+  t.appendChild(mk("🏠 비상주 추천", nonres, null));
+  t.appendChild(mk("픽코", counts["픽코"], VENDOR_COLOR["픽코"]));
+  t.appendChild(mk("고스카", counts["고스카"], VENDOR_COLOR["고스카"]));
+
+  /* 점유율 구간별 매장 나열 */
+  const bandsEl = document.getElementById("occBands");
+  const withOcc = VENUES.map(v=>({v, o:lockerOcc(vs(v.id))})).filter(x=>x.o!==null);
+  const bands = [
+    {label:"90%↑", note:"", test:o=>o>=90},
+    {label:"70%↑", note:"", test:o=>o>=70&&o<90},
+    {label:"60%↑", note:"", test:o=>o>=60&&o<70},
+    {label:"20%↓", note:"🏠 비상주로 추천", test:o=>o>10&&o<=20},
+    {label:"10%↓", note:"🏠 비상주로 추천", test:o=>o<=10},
+  ];
+  bandsEl.innerHTML = "";
+  let anyBand = false;
+  bands.forEach(b=>{
+    const hit = withOcc.filter(x=>b.test(x.o)).sort((a,c)=>c.o-a.o);
+    if(!hit.length) return;
+    anyBand = true;
+    const row = document.createElement("div"); row.className="oband";
+    row.innerHTML = `<span class="ob-label">🔒 ${b.label}</span>`
+      + `<span class="ob-names">${hit.map(x=>`<span class="ob-name" data-n="${esc(x.v.name)}">${esc(x.v.name)} ${x.o}%</span>`).join("")}</span>`
+      + (b.note?`<span class="ob-note">${b.note}</span>`:"");
+    bandsEl.appendChild(row);
+  });
+  if(!anyBand) bandsEl.innerHTML = `<div class="occbands-empty">점유율이 기록되면 90%↑ / 70%↑ / 60%↑ / 20%↓ / 10%↓ 구간별로 매장이 여기에 표시됩니다</div>`;
+  bandsEl.querySelectorAll(".ob-name").forEach(el=>{
+    el.onclick = ()=>{
+      const q = el.dataset.n;
+      document.getElementById("searchInput").value = q;
+      filter.q = q; renderList();
+      document.getElementById("list").scrollIntoView({behavior:"smooth"});
+    };
+  });
+}
+
+function renderFilters(){
+  const f = document.getElementById("filters");
+  f.innerHTML = "";
+  ["전체","분당구","수정구","중원구"].forEach(d=>{
+    const c = document.createElement("button"); c.className="chip"+(filter.district===d?" on":"");
+    c.textContent = d; c.onclick = ()=>{filter.district=d; render();};
+    f.appendChild(c);
+  });
+  [["전체","전체"],["todo","미조사"],["done","완료"]].forEach(([k,l])=>{
+    const c = document.createElement("button"); c.className="chip"+(filter.status===k?" on":"");
+    c.textContent = l; c.onclick = ()=>{filter.status=k; render();};
+    f.appendChild(c);
+  });
+  const so = document.createElement("button"); so.className="chip tg"+(filter.sortOcc?" on":"");
+  so.textContent = "🔒 점유율순"; so.onclick = ()=>{filter.sortOcc=!filter.sortOcc; render();};
+  f.appendChild(so);
+  const tg = document.createElement("button"); tg.className="chip tg"+(filter.targetOnly?" on":"");
+  tg.textContent = "⭐ 타깃만"; tg.onclick = ()=>{filter.targetOnly=!filter.targetOnly; render();};
+  f.appendChild(tg);
+  const nr = document.createElement("button"); nr.className="chip tg"+(filter.nonresOnly?" on":"");
+  nr.textContent = "🏠 비상주만"; nr.onclick = ()=>{filter.nonresOnly=!filter.nonresOnly; render();};
+  f.appendChild(nr);
+}
+
+const openSet = new Set();
+
+function renderList(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  let items = VENUES.filter(v=>{
+    const s = vs(v.id);
+    const st = calcStatus(s);
+    if(filter.district!=="전체" && v.district!==filter.district) return false;
+    if(filter.status!=="전체" && st!==filter.status) return false;
+    if(filter.targetOnly && !s.target) return false;
+    if(filter.nonresOnly && !s.nonres) return false;
+    if(!matchQuery(v)) return false;
+    return true;
+  });
+  if(filter.sortOcc){
+    items = items.slice().sort((a,b)=>{
+      const oa = lockerOcc(vs(a.id)), ob = lockerOcc(vs(b.id));
+      return (ob===null?-1:ob) - (oa===null?-1:oa);
+    });
+    items.forEach(v=> list.appendChild(buildVenue(v, vs(v.id), calcStatus(vs(v.id)))));
+  } else {
+    let lastArea = null;
+    items.forEach(v=>{
+      const areaKey = v.district+" · "+v.area;
+      if(areaKey !== lastArea){
+        lastArea = areaKey;
+        const cnt = VENUES.filter(x=>x.district===v.district && x.area===v.area).length;
+        const h = document.createElement("div"); h.className="area-head";
+        h.innerHTML = `${esc(areaKey)} <span class="cnt">${cnt}곳</span>`;
+        list.appendChild(h);
+      }
+      list.appendChild(buildVenue(v, vs(v.id), calcStatus(vs(v.id))));
+    });
+  }
+  if(!items.length){
+    const e = document.createElement("div"); e.className="empty";
+    e.textContent = "조건에 맞는 매장이 없습니다";
+    list.appendChild(e);
+  }
+}
+
+function buildVenue(v, s, st){
+  const el = document.createElement("div");
+  el.className = "venue"+(openSet.has(v.id)?" open":"")+(v.closed?" closed":"");
+
+  const [gLabel, gClass] = APP_GUESS_BADGE[v.appGuess];
+  const vendorBadge = s.vendor!=="미확인"
+    ? `<span class="badge b-vendor" style="background:${VENDOR_COLOR[s.vendor]||'#8A8F98'}">${esc(s.vendor)}</span>` : "";
+  const appBadge = s.appResult!=="미확인"
+    ? `<span class="badge ${s.appResult==="있음"?"b-app-high":"b-app-low"}">앱 ${s.appResult}</span>`
+    : `<span class="badge ${gClass}">${gLabel}</span>`;
+  const occ = lockerOcc(s);
+  const occBadge = occ!==null
+    ? `<span class="badge" style="background:${occColor(occ).bg};color:${occColor(occ).fg}">🔒 ${occ}%</span>` : "";
+  const nrBadge = s.nonres ? `<span class="badge b-nr">🏠 비상주</span>` : "";
+
+  const head = document.createElement("div");
+  head.className = "v-head";
+  head.innerHTML = `
+    <span class="v-status ${st}"></span>
+    <div class="v-main">
+      <div class="v-name">${s.target?'<span class="star">⭐</span>':''}${esc(v.name)}</div>
+      <div class="v-sub">
+        ${occBadge}${nrBadge}${appBadge}${vendorBadge}
+        <span>${esc(v.brand)}</span>
+      </div>
+      ${v.transit?`<div class="transit-hint">${esc(v.transit)}</div>`:""}
+    </div>
+    <span class="v-toggle">▼</span>`;
+  head.onclick = ()=>{ openSet.has(v.id)?openSet.delete(v.id):openSet.add(v.id); render(); };
+  el.appendChild(head);
+
+  const body = document.createElement("div");
+  body.className = "v-body";
+
+  if(v.note){
+    const n = document.createElement("div"); n.className="note-box";
+    n.textContent = "메모: "+v.note;
+    body.appendChild(n);
+  }
+
+  /* ① 사물함 점유율 — 최우선 조사 항목, 날짜별 기록 누적 */
+  body.appendChild(secLabel("① 사물함 점유율 (상권분석)"));
+  const lk = document.createElement("div");
+  lk.className = "grid2";
+  const lu = document.createElement("div"); lu.className="fld";
+  lu.innerHTML = `<label>이용 중 사물함 (이름표·자물쇠 기준)</label>`;
+  const luIn = document.createElement("input"); luIn.type="text"; luIn.inputMode="numeric"; luIn.placeholder="예: 47";
+  luIn.value = s.lockerUsed||"";
+  lu.appendChild(luIn);
+  const lt = document.createElement("div"); lt.className="fld";
+  lt.innerHTML = `<label>총 사물함 수</label>`;
+  const ltIn = document.createElement("input"); ltIn.type="text"; ltIn.inputMode="numeric"; ltIn.placeholder="예: 60";
+  ltIn.value = s.lockerTotal||"";
+  lt.appendChild(ltIn);
+  lk.appendChild(lu); lk.appendChild(lt);
+  body.appendChild(lk);
+
+  const occView = document.createElement("div");
+  const histView = document.createElement("div"); histView.className="hist";
+  const drawOcc = ()=>{
+    const o = lockerOcc(s);
+    if(o===null){ occView.innerHTML = `<div class="occ-none">두 값을 입력하면 점유율이 계산되고 오늘 날짜로 자동 기록됩니다</div>`; return; }
+    const c = occColor(o);
+    const label = o>=70 ? "수요 강함 — 후보 상권 시그널"
+                : o>=40 ? "보통"
+                : (o>20 ? "수요 약함" : "수요 약함 — 🏠 비상주로 추천");
+    occView.innerHTML = `
+      <div class="occ-row"><b style="color:${c.fg}">${o}%</b><span>${label}</span>${s.lockerDate?`<span class="occ-date">기록일 ${s.lockerDate}</span>`:""}</div>
+      <div class="occbar"><div style="width:${o}%;background:${c.bar}"></div></div>`;
+  };
+  const drawHist = ()=>{
+    const h = (s.lockerHistory||[]).slice().sort((a,b)=> a.date<b.date?1:-1);
+    if(!h.length){ histView.innerHTML=""; return; }
+    histView.innerHTML = `<div class="hist-title">점유율 기록 (${h.length}회)</div>` + h.map(e=>{
+      const o = (e.total>0)? Math.min(100, Math.round(e.used/e.total*100)) : "-";
+      return `<div class="hist-row"><span>${e.date}</span><span>${e.used}/${e.total}</span><b>${o}%</b><button class="hist-del" data-d="${e.date}">삭제</button></div>`;
+    }).join("");
+    histView.querySelectorAll(".hist-del").forEach(btn=>{
+      btn.onclick = ()=>{
+        s.lockerHistory = (s.lockerHistory||[]).filter(x=>x.date!==btn.dataset.d);
+        scheduleSave(); drawHist(); renderSummary();
+      };
+    });
+  };
+  drawOcc(); drawHist();
+  body.appendChild(occView);
+  body.appendChild(histView);
+
+  const onLocker = ()=>{
+    s.lockerUsed = luIn.value.replace(/[^0-9]/g,"");
+    s.lockerTotal = ltIn.value.replace(/[^0-9]/g,"");
+    luIn.value = s.lockerUsed; ltIn.value = s.lockerTotal;
+    const t = parseInt(s.lockerTotal,10), u = parseInt(s.lockerUsed,10);
+    if(t>0 && !isNaN(u) && u>=0){
+      s.lockerDate = todayDash();
+      const i = s.lockerHistory.findIndex(x=>x.date===s.lockerDate);
+      const entry = {date:s.lockerDate, total:t, used:u};
+      if(i>=0) s.lockerHistory[i]=entry; else s.lockerHistory.push(entry);
+    }
+    drawOcc(); drawHist(); scheduleSave(); renderSummary();
+  };
+  luIn.oninput = onLocker; ltIn.oninput = onLocker;
+  const refreshHead = ()=>render();
+  luIn.onblur = refreshHead; ltIn.onblur = refreshHead;
+
+  body.appendChild(secLabel("바로가기"));
+  const links = document.createElement("div"); links.className="links";
+  links.innerHTML = `
+    <a class="lnk" target="_blank" href="https://map.naver.com/p/search/${encodeURIComponent(v.name.replace(/\(.*\)/,"").trim()+" 성남")}">🗺 네이버 지도</a>`;
+  body.appendChild(links);
+
+  body.appendChild(secLabel("② 전환 영업 정보"));
+  const res = document.createElement("div");
+
+  const g = document.createElement("div"); g.className="grid2";
+  const appRow = document.createElement("div"); appRow.className="fld";
+  appRow.innerHTML = `<label>전용 앱 사용 여부</label>`;
+  const appPills = document.createElement("div"); appPills.className="pillrow";
+  ["미확인","있음","없음"].forEach(opt=>{
+    const p = document.createElement("button");
+    p.className = "pill"+(s.appResult===opt?" on"+(opt==="있음"?" p-target":""):"");
+    p.textContent = opt;
+    p.onclick = ()=>{ s.appResult = opt; scheduleSave(); render(); };
+    appPills.appendChild(p);
+  });
+  appRow.appendChild(appPills);
+  g.appendChild(appRow);
+
+  const vd = document.createElement("div"); vd.className="fld";
+  vd.innerHTML = `<label>키오스크 벤더 — '있음' 선택 시 활성화</label>`;
+  const sel = document.createElement("select");
+  VENDORS.forEach(x=>{
+    const o = document.createElement("option"); o.value=x; o.textContent=x;
+    if(s.vendor===x) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.disabled = s.appResult!=="있음";
+  sel.onchange = ()=>{ s.vendor = sel.value; scheduleSave(); render(); };
+  vd.appendChild(sel);
+  g.appendChild(vd);
+  res.appendChild(g);
+
+  const memo = document.createElement("div"); memo.className="fld"; memo.style.marginTop="10px";
+  memo.innerHTML = `<label>조사 메모 (담당자·통화 내용·가격대 등)</label>`;
+  const ta = document.createElement("textarea");
+  ta.value = s.memo || "";
+  ta.oninput = ()=>{ s.memo = ta.value; scheduleSave(); };
+  memo.appendChild(ta);
+  res.appendChild(memo);
+  body.appendChild(res);
+
+  const tg = document.createElement("button");
+  tg.className = "tgbtn"+(s.target?" on":"");
+  tg.textContent = s.target ? "⭐ 고스카 전환 타깃 지정됨 (해제하려면 탭)" : "☆ 고스카 전환 타깃으로 지정";
+  tg.onclick = ()=>{ s.target = !s.target; scheduleSave(); render(); };
+  body.appendChild(tg);
+
+  const nr = document.createElement("button");
+  nr.className = "nrbtn"+(s.nonres?" on":"");
+  nr.textContent = s.nonres ? "🏠 비상주 추천 지정됨 (해제하려면 탭)" : "🏠 비상주 추천으로 지정";
+  nr.onclick = ()=>{ s.nonres = !s.nonres; scheduleSave(); render(); };
+  body.appendChild(nr);
+
+  el.appendChild(body);
+  return el;
+}
+
+function secLabel(t){ const d = document.createElement("div"); d.className="sec-label"; d.textContent=t; return d; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ========== 내보내기/백업 ========== */
+function exportCSV(){
+  const head = ["지역","상권","지점명","브랜드","전화","교통","이용중","총사물함","점유율(%)","최근기록일","점유율기록","앱여부","키오스크벤더","전환타깃","비상주추천","조사상태","메모"];
+  const rows = VENUES.map(v=>{
+    const s = vs(v.id);
+    const stMap = {todo:"미조사",doing:"조사중",done:"완료"};
+    const o = lockerOcc(s);
+    const hist = (s.lockerHistory||[]).slice().sort((a,b)=>a.date<b.date?-1:1)
+      .map(e=>`${e.date} ${e.used}/${e.total}`).join(" | ");
+    return [v.district, v.area, v.name, v.brand, v.phone, (v.transit||"").replace(/🚇|🚌|🚈/g,"").trim(),
+            s.lockerUsed||"", s.lockerTotal||"", o===null?"":o, s.lockerDate||"", hist,
+            s.appResult, s.vendor,
+            s.target?"O":"", s.nonres?"O":"",
+            stMap[calcStatus(s)], (s.memo||"").replace(/\n/g," / ")];
+  });
+  const csv = "\uFEFF"+[head, ...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  download(new Blob([csv], {type:"text/csv;charset=utf-8"}), "성남시_스터디카페_조사_"+today()+".csv");
+  toast("CSV 파일을 내려받았습니다");
+}
+function backupJSON(){
+  download(new Blob([JSON.stringify(state,null,2)], {type:"application/json"}), "성남조사_백업_"+today()+".json");
+  toast("백업 파일을 내려받았습니다");
+}
+function restoreJSON(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      state = JSON.parse(r.result);
+      scheduleSave(); render();
+      toast("복원 완료");
+    }catch(e){ toast("복원 실패 — 파일 형식을 확인해 주세요"); }
+  };
+  r.readAsText(file);
+  ev.target.value = "";
+}
+function download(blob, name){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function today(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
+function todayDash(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+/* ========== 시작 ========== */
+document.getElementById("searchInput").addEventListener("input", (e)=>{
+  filter.q = e.target.value.trim(); renderList();
+});
+(async ()=>{
+  state = await Storage.load() || {};
+  render();
+})();
+</script>
+</body>
+</html>

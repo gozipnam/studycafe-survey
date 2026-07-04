@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>용인시 스터디카페 조사 체크리스트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --paper:#F7F6F2; --card:#FFFFFF; --ink:#1C2530; --ink-soft:#5A6572; --line:#E3E1DA;
+  --target:#0E7A5F; --target-bg:#E7F3EE;
+  --warn:#B07C10; --warn-bg:#FBF3DF;
+  --low:#8A8F98; --low-bg:#EFF0F2;
+  --done:#0E7A5F; --doing:#B07C10; --todo:#C9CDD3;
+  --pikko:#C0504D; --zero:#4A6FA5; --goska:#0E7A5F;
+  --danger:#B3403A;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+.wrap{max-width:1080px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left))}
+
+header{padding:18px 0 6px}
+header h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
+
+/* summary strip */
+.summary{background:var(--ink);color:#fff;border-radius:var(--r);padding:14px 16px;margin:12px 0}
+.prog-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.prog-row .pct{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.prog-row .lbl{font-size:12px;opacity:.75}
+.bar{height:8px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden}
+.bar>div{height:100%;background:var(--target);border-radius:4px;transition:width .3s;width:0}
+.tallies{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tally{background:rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-size:12px;display:flex;gap:6px;align-items:center}
+.tally b{font-variant-numeric:tabular-nums}
+.tally .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* search + filters — 스크롤 시 상단 고정 */
+.toolbar{position:sticky;top:0;z-index:20;background:var(--paper);padding:8px 0 4px;margin:8px 0 10px;box-shadow:0 8px 12px -10px rgba(28,37,48,.18)}
+.searchbox{margin:0 0 8px}
+.searchbox input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:16px;font-family:inherit;background:var(--card);color:var(--ink)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:22px;padding:9px 16px;font-size:14px;cursor:pointer;color:var(--ink-soft);font-weight:600;min-height:40px;touch-action:manipulation}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.tg.on{background:var(--target);border-color:var(--target)}
+
+/* area group header */
+.area-head{font-size:12px;font-weight:800;color:var(--ink-soft);letter-spacing:.4px;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
+.area-head .cnt{font-weight:600;opacity:.7}
+
+/* venue card */
+.venue{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.venue.closed{opacity:.55}
+.v-head{display:flex;align-items:center;gap:12px;padding:15px 16px;cursor:pointer;min-height:56px;touch-action:manipulation}
+.v-status{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.v-status.todo{background:var(--todo)}
+.v-status.doing{background:var(--doing)}
+.v-status.done{background:var(--done)}
+.v-main{flex:1;min-width:0}
+.v-name{font-weight:700;font-size:15.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.v-name .star{color:var(--target);font-size:16px}
+.v-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{font-size:12px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap}
+.b-district{background:var(--low-bg);color:var(--ink-soft)}
+.b-app-high{background:var(--target-bg);color:var(--target)}
+.b-app-check{background:var(--warn-bg);color:var(--warn)}
+.b-app-low{background:var(--low-bg);color:var(--low)}
+.b-vendor{color:#fff}
+.transit-hint{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.v-toggle{color:var(--ink-soft);font-size:12px;flex-shrink:0;transition:transform .2s}
+.venue.open .v-toggle{transform:rotate(180deg)}
+
+.v-body{display:none;padding:0 14px 14px;border-top:1px dashed var(--line)}
+.venue.open .v-body{display:block}
+.sec-label{font-size:11px;font-weight:800;color:var(--ink-soft);letter-spacing:.5px;margin:14px 0 6px;text-transform:uppercase}
+.note-box{font-size:12.5px;color:var(--ink-soft);margin-top:10px;background:var(--paper);border-radius:6px;padding:8px 10px}
+
+/* quick links */
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.lnk{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;padding:11px 16px;font-size:14px;text-decoration:none;color:var(--ink);font-weight:600;background:var(--paper);min-height:44px;touch-action:manipulation}
+.lnk:active{background:var(--line)}
+.lnk.call{border-color:var(--target);color:var(--target)}
+
+/* checklist */
+.check{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #F0EFEA;cursor:pointer;user-select:none}
+.check:last-child{border-bottom:none}
+.check input{width:17px;height:17px;accent-color:var(--target);flex-shrink:0}
+.check span{font-size:13.5px}
+.check.ck span{color:var(--ink-soft);text-decoration:line-through}
+
+/* result inputs */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.fld select,.fld input[type=text],.fld textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);min-height:44px}
+.fld textarea{resize:vertical;min-height:64px}
+.pillrow{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink-soft);min-height:44px;touch-action:manipulation}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pill.on.p-target{background:var(--target);border-color:var(--target)}
+.chanrow{display:flex;gap:12px;flex-wrap:wrap}
+.chanrow .check{border:none;padding:4px 0}
+
+.tgbtn{margin-top:14px;width:100%;border:1.5px solid var(--target);background:#fff;color:var(--target);border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:48px;touch-action:manipulation}
+.tgbtn.on{background:var(--target);color:#fff}
+.nrbtn{margin-top:10px;width:100%;border:1.5px solid var(--warn);background:#fff;color:var(--warn);border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:48px;touch-action:manipulation}
+.nrbtn.on{background:var(--warn);color:#fff}
+.b-nr{background:var(--warn-bg);color:var(--warn)}
+.occ-row{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.occ-row b{font-size:20px;font-variant-numeric:tabular-nums}
+.occ-row span{font-size:12px;color:var(--ink-soft)}
+.occbar{height:8px;background:var(--low-bg);border-radius:4px;overflow:hidden;margin-top:4px}
+.occbar>div{height:100%;border-radius:4px;transition:width .25s}
+.occ-none{font-size:12px;color:var(--ink-soft);margin-top:8px}
+.occ-date{margin-left:auto;font-size:11px;color:var(--ink-soft)}
+.hist{margin-top:8px}
+.hist-title{font-size:11px;font-weight:800;color:var(--ink-soft);margin-bottom:2px}
+.hist-row{display:flex;gap:14px;align-items:center;font-size:14px;padding:8px 0;border-bottom:1px solid #F0EFEA}
+.hist-row b{font-variant-numeric:tabular-nums;margin-left:auto}
+.hist-del{border:none;background:none;color:var(--danger);font-size:13px;cursor:pointer;font-family:inherit;padding:8px 10px;min-height:40px;touch-action:manipulation}
+.fld select:disabled{opacity:.45}
+.occbands{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.oband{display:flex;gap:8px;font-size:12px;align-items:baseline;flex-wrap:wrap}
+.oband .ob-label{font-weight:800;white-space:nowrap;min-width:58px}
+.oband .ob-names{display:flex;flex-wrap:wrap;gap:4px}
+.oband .ob-name{background:rgba(255,255,255,.14);border-radius:4px;padding:2px 8px;cursor:pointer}
+.oband .ob-name:active{background:rgba(255,255,255,.3)}
+.oband .ob-note{opacity:.75;font-size:11px}
+.occbands-empty{font-size:11.5px;opacity:.6}
+
+/* footer tools */
+.tools{display:flex;gap:10px;margin:20px 0}
+.tools button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink);min-height:48px;touch-action:manipulation}
+.savenote{text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:6px}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 22px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+.toast.show{opacity:1}
+.empty{text-align:center;color:var(--ink-soft);padding:30px 0;font-size:14px}
+
+/* 아이패드 미니 가로(1133px) — 카드 2열 배치, 펼친 카드는 전체 폭 */
+@media(min-width:900px){
+  #list{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+  .area-head{grid-column:1 / -1}
+  .empty{grid-column:1 / -1}
+  .venue.open{grid-column:1 / -1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>용인시 스터디카페 조사 체크리스트</h1>
+    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 100곳 · 도보시간 추정치)</p>
+  </header>
+
+  <div class="summary">
+    <div class="prog-row">
+      <span class="lbl">사물함 점유율 조사 진행률</span>
+      <span class="pct"><span id="pDone">0</span>/<span id="pTotal">0</span> 완료</span>
+    </div>
+    <div class="bar"><div id="pBar"></div></div>
+    <div class="occbands" id="occBands"></div>
+    <div class="tallies" id="tallies"></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="searchbox"><input type="text" id="searchInput" placeholder="지점명·브랜드·역 이름 검색 (예: 작심, 동백역)"></div>
+    <div class="filters" id="filters"></div>
+  </div>
+  <div id="list"></div>
+
+  <div class="tools">
+    <button onclick="exportCSV()">CSV 내보내기</button>
+    <button onclick="backupJSON()">백업(JSON)</button>
+    <button onclick="document.getElementById('restoreFile').click()">복원</button>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreJSON(event)">
+  </div>
+  <div class="savenote">입력 내용은 자동 저장됩니다 (이 브라우저 기준)</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 매장 기본 데이터 (73곳) ==========
+   기존 ID는 절대 변경 금지 — 저장된 조사 데이터가 ID에 연결되어 있음 */
+const VENUES = [
+ /* ---------- 수지구 · 죽전동(단국대 상권) ---------- */
+ {id:"richi-jj", name:"리치스터디카페 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"070-4126-2709", transit:"🚌 꽃메마을·단국대 정류장 (죽전역 버스 환승)", note:"24시 무인", closed:false},
+ {id:"olla-dku", name:"올라스터디카페 죽전단국대점", district:"수지구", area:"죽전동(단국대)", brand:"소규모 체인(올라)", appGuess:"low", phone:"050-71344-1198", transit:"🚌 단국대입구 정류장", note:"24시", closed:false},
+ {id:"lang-dku", name:"랭 단국대점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(랭)", appGuess:"check", phone:"031-897-5785", transit:"🚌 단국대입구 정류장", note:"유인 10~22시, 스터디룸 방음 불만 리뷰", closed:false},
+ {id:"gaon-dku", name:"가온스터디카페 단국대점", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"010-4423-9161", transit:"🚌 단국대입구 정류장", note:"대학생 수요 위주", closed:false},
+ {id:"leheim-jj", name:"르하임 용인죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"010-4490-6364", transit:"🚌 꽃메마을·단국대치과병원 정류장", note:"리뷰 16건, 비교적 신규", closed:false},
+ {id:"mentorim7-jj", name:"멘토림7 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(멘토즈 계열)", appGuess:"high", phone:"", transit:"🚌 꽃메마을 정류장", note:"프리미엄형, 전화 미등록", closed:false},
+ {id:"studybank-jj", name:"스터디뱅크 죽전독서실", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"031-548-2903", transit:"🚌 현암로 벤포스타 인근", note:"캡슐형 독서실 병행, 산소발생기 등 특화", closed:false},
+ {id:"ggsam-jj", name:"공간샘 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-5275-7200", transit:"🚌 꽃메마을 정류장", note:"24시", closed:false},
+ {id:"guru-jj", name:"그루 수지죽전센터", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(그루)", appGuess:"check", phone:"010-6363-9146", transit:"🚇 죽전역 도보 14분", note:"", closed:false},
+
+ /* ---------- 수지구 · 풍덕천동(수지구청역) ---------- */
+ {id:"gongbuin", name:"공부인 수지구청센터", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"031-8017-5730", transit:"🚇 수지구청역 도보 6분", note:"", closed:false},
+ {id:"sizak-sj", name:"시작 수지점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"프랜차이즈(시작)", appGuess:"check", phone:"031-262-0135", transit:"🚇 수지구청역 도보 3분", note:"네이버 블로그 운영, 작심 수지구청역점과 같은 건물", closed:false},
+ {id:"jaksim-sjgc", name:"작심 수지구청역점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"050-71390-3036", transit:"🚇 수지구청역 도보 3분", note:"작심 자체 앱 운영 브랜드", closed:false},
+ {id:"ggsam-sjgc", name:"공간샘 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"050-71305-4037", transit:"🚇 수지구청역 도보 4분", note:"", closed:false},
+ {id:"mentors-sjgc", name:"멘토즈 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"050-71321-5209", transit:"🚇 수지구청역 도보 3분", note:"멘토즈 자체 앱 운영 브랜드", closed:false},
+ {id:"leheim-sjgc", name:"르하임 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"031-817-8545", transit:"🚇 수지구청역 도보 3분", note:"", closed:false},
+ {id:"bluemoon-sjgc", name:"블루문 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"050-71477-0181", transit:"🚇 수지구청역 도보 4분", note:"", closed:false},
+ {id:"pureut-sjgc", name:"푸릇 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"031-261-5900", transit:"🚇 수지구청역 도보 2분", note:"여성전용", closed:false},
+ {id:"miracle-sj", name:"미라클 용인수지센터", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"010-5392-3312", transit:"🚇 수지구청역 도보 4분", note:"", closed:false},
+ {id:"gogongsu-pd", name:"고공수 풍덕천점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 수지구청역 도보 10분", note:"⚠ 운영 여부 확인 필요", closed:false},
+ {id:"haneulmaru", name:"하늘마루 수지구청점", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"031-304-6007", transit:"🚇 수지구청역 도보 4분", note:"⚠ 리뷰에 폐업 언급 — 확인 필요", closed:true},
+
+ /* ---------- 수지구 · 상현동 ---------- */
+ {id:"leheim-sh", name:"르하임 수지상현점", district:"수지구", area:"상현동", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"010-8705-0837", transit:"🚌 만현마을 정류장 (성복역 도보 15분)", note:"리뷰 47건, 멘토즈 상현점과 같은 건물", closed:false},
+ {id:"mentors-sh", name:"멘토즈 수지상현점", district:"수지구", area:"상현동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"031-261-0982", transit:"🚌 만현마을 정류장 (성복역 도보 15분)", note:"", closed:false},
+ {id:"beable-sh", name:"비에이블 수지상현센터", district:"수지구", area:"상현동", brand:"소규모 체인(비에이블)", appGuess:"low", phone:"010-9757-9400", transit:"🚌 만현마을 정류장", note:"카페 병행", closed:false},
+ {id:"capstone-sh", name:"캡스톤캠퍼스 상현점", district:"수지구", area:"상현동", brand:"독립 추정", appGuess:"low", phone:"010-4889-8621", transit:"🚌 만현마을 정류장", note:"비에이블과 같은 건물", closed:false},
+ {id:"ocean-sh", name:"오션 수지상현점", district:"수지구", area:"상현동", brand:"소규모 체인(오션)", appGuess:"low", phone:"010-9576-0225", transit:"🚇 성복역 도보 8분", note:"", closed:false},
+ {id:"mentorim7-shlib", name:"멘토림7 상현도서관점", district:"수지구", area:"상현동", brand:"프랜차이즈(멘토즈 계열)", appGuess:"high", phone:"031-213-0505", transit:"🚇 상현역 도보 6분", note:"프리미엄 독서실형, 리뷰 8건", closed:false},
+ {id:"monogram-sh", name:"모노그램 광교상현역점", district:"수지구", area:"상현동", brand:"독립 추정", appGuess:"low", phone:"050-71329-2712", transit:"🚇 상현역 도보 1분", note:"24시", closed:false},
+ {id:"studyncafe-sh", name:"스터디엔카페독서실 (상현)", district:"수지구", area:"상현동", brand:"소규모 체인(스터디엔카페)", appGuess:"low", phone:"031-216-0982", transit:"🚇 상현역 도보 2분", note:"관리 부실 리뷰 있음", closed:false},
+ {id:"plana-sh", name:"플랜A프리미엄 (상현)", district:"수지구", area:"상현동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"031-898-0099", transit:"🚌 만현마을 정류장 (성복역 도보 12분)", note:"유인 10~22시", closed:false},
+
+ /* ---------- 수지구 · 성복동 ---------- */
+ {id:"mentors-sb", name:"멘토즈 수지성복점", district:"수지구", area:"성복동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-2923-6488", transit:"🚇 성복역 도보 4분", note:"리뷰 27건 지역 상위", closed:false},
+ {id:"guru-sb", name:"그루 성복센터점", district:"수지구", area:"성복동", brand:"프랜차이즈(그루)", appGuess:"check", phone:"031-266-3031", transit:"🚇 성복역 도보 6분", note:"06~24시 운영", closed:false},
+ {id:"gongbon", name:"공본 수지성복센터", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"010-8603-2035", transit:"🚌 성복자이·LG빌리지 정류장 (성복역 1.3km)", note:"홈페이지=카톡채널(pf.kakao.com) → 친구톡 발송 후보", closed:false, presetChannel:{kakao:true}},
+ {id:"plana-sb", name:"플랜에이 수지성복센터", district:"수지구", area:"성복동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"010-3702-8454", transit:"🚇 성복역 도보 8분", note:"", closed:false},
+ {id:"spl24-sb", name:"스플24 (성복)", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"070-5222-3699", transit:"🚇 성복역 도보 5분", note:"", closed:false},
+ {id:"sumanhwi-sb", name:"수만휘 관리형 (성복)", district:"수지구", area:"성복동", brand:"프랜차이즈(수만휘) 추정", appGuess:"check", phone:"031-261-4364", transit:"🚇 성복역 도보 3분", note:"관리형(감독형)", closed:false},
+ {id:"rowa-sb", name:"로와 성복점", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 성복동 서측(LG자이) 마을버스", note:"전화 미등록, 리뷰 호불호", closed:false},
+ {id:"nobel-sb", name:"노벨 수지성복센터", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 성복역 도보 10분", note:"전화 미등록, 현장 확인 필요", closed:false},
+ {id:"soyu-sb", name:"소유 스터디오피스카페 수지성복점", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 성복역 도보 3분", note:"전화 미등록, 현장 확인 필요", closed:false},
+
+ /* ---------- 수지구 · 동천동 ---------- */
+ {id:"mentors-dc", name:"멘토즈 수지동천점", district:"수지구", area:"동천동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-6749-4460", transit:"🚇 동천역 도보 10분", note:"리뷰에 카카오톡 채널 소통 언급", closed:false},
+ {id:"winum-dc", name:"위넘 수지동천점", district:"수지구", area:"동천동", brand:"소규모 체인(위넘)", appGuess:"low", phone:"010-5752-8629", transit:"🚇 동천역 도보 8분", note:"", closed:false},
+ {id:"gibon-dc", name:"기본스터디카페 수지점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"070-3739-6866", transit:"🚇 동천역 도보 12분", note:"할인 이벤트 잦음", closed:false},
+ {id:"sigan-dc", name:"시간과공간 수지점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"010-2420-0247", transit:"🚇 동천역 도보 9분", note:"동천동 최신축 언급 리뷰", closed:false},
+ {id:"timeyou-dc", name:"타임유 용인동천점", district:"수지구", area:"동천동", brand:"소규모 체인(타임유)", appGuess:"low", phone:"010-4240-4470", transit:"🚇 동천역 도보 2분", note:"역세권 최상", closed:false},
+ {id:"wide-dc", name:"와이드스터디 플래닛카페 동천점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 동천역 도보 8분", note:"환불 관련 부정 리뷰 있음", closed:false},
+ {id:"top24h-dc", name:"TOP24H 스터디카페 (동천)", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 동천역 도보 9분", note:"유인 09:30~22시", closed:false},
+
+ /* ---------- 수지구 · 신봉동 ---------- */
+ {id:"chowol-sinb", name:"초월 수지신봉점", district:"수지구", area:"신봉동", brand:"프랜차이즈(초월)", appGuess:"check", phone:"010-8410-0955", transit:"🚌 신봉마을·센트럴타운 정류장 (수지구청역 버스 10분)", note:"퍼플과 같은 건물(센트럴500)", closed:false},
+ {id:"purple-sinb", name:"퍼플 수지센터", district:"수지구", area:"신봉동", brand:"독립 추정", appGuess:"low", phone:"050-71373-8210", transit:"🚌 신봉마을·센트럴타운 정류장", note:"초월과 같은 건물", closed:false},
+ {id:"growlab-sinb", name:"그로우랩 수지신봉점", district:"수지구", area:"신봉동", brand:"독립 추정", appGuess:"low", phone:"050-71405-3522", transit:"🚌 신봉마을 정류장", note:"24시", closed:false},
+ {id:"ilchwi-sinb", name:"일취월장 관리형 신봉점", district:"수지구", area:"신봉동", brand:"독립 추정", appGuess:"low", phone:"010-3274-4896", transit:"🚌 신봉마을 정류장", note:"관리형(감독형)", closed:false},
+ {id:"studyncafe-sinb", name:"스터디엔카페 신봉", district:"수지구", area:"신봉동", brand:"소규모 체인(스터디엔카페)", appGuess:"low", phone:"031-266-0985", transit:"🚌 신봉2로 웰스톤애비뉴 인근", note:"독서실 병행", closed:false},
+ {id:"theclass-sinb", name:"더클래스 신봉점", district:"수지구", area:"신봉동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 신봉마을 정류장", note:"전화 미등록", closed:false},
+ {id:"olla-sinb", name:"올라 용인신봉점", district:"수지구", area:"신봉동", brand:"소규모 체인(올라)", appGuess:"low", phone:"", transit:"🚌 신봉동 진성프라자 인근", note:"전화 미등록", closed:false},
+
+ /* ---------- 기흥구 · 보정동(죽전로 상권) ---------- */
+ {id:"lang-jj", name:"랭 죽전점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(랭)", appGuess:"check", phone:"031-889-9520", transit:"🚇 보정역 도보 9분", note:"카페 병행형, 유인, 리뷰 33건", closed:false},
+ {id:"leheim-bj", name:"르하임 용인보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"031-308-9351", transit:"🚇 보정역 도보 7분", note:"09~22:30 유인", closed:false},
+ {id:"sizak-bj", name:"시작 용인보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(시작)", appGuess:"check", phone:"010-8082-5561", transit:"🚇 보정역 도보 5분", note:"modoo 홈페이지, 시간충전 프로모션 리뷰", closed:false},
+ {id:"ggsam-bj", name:"공간샘 보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"", transit:"🚇 보정역 도보 7분", note:"전화번호 미등록", closed:false},
+ {id:"gongbon-bj", name:"공본 (보정)", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"031-2520-0926", transit:"🚇 보정역 도보 5분", note:"05~22시, 수지성복점과 동일 브랜드", closed:false},
+ {id:"beable-bj", name:"비에이블 (보정)", district:"기흥구", area:"보정동(죽전로)", brand:"소규모 체인(비에이블)", appGuess:"low", phone:"010-5723-4685", transit:"🚇 보정역 도보 6분", note:"", closed:false},
+ {id:"pops-bj", name:"팝스 용인죽전점", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"010-5240-1579", transit:"🚇 보정역 도보 10분", note:"", closed:false},
+ {id:"sgong", name:"성공스터디카페 (용구대로)", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"010-4502-5041", transit:"🚇 보정역 도보 13분", note:"신규 매장 추정, 영덕점과 동일 업주 가능성", closed:false},
+
+ /* ---------- 기흥구 · 구갈·신갈·상갈 ---------- */
+ {id:"thejj-gh", name:"더집중 기흥점", district:"기흥구", area:"구갈동(기흥구청)", brand:"프랜차이즈(더집중)", appGuess:"check", phone:"010-5721-8244", transit:"🚇 기흥역 도보 10분 · 🚌 기흥구청 정류장", note:"24시 무인 · 최밀집 상권", closed:false},
+ {id:"chowol-gh", name:"초월 용인기흥점", district:"기흥구", area:"구갈동(기흥구청)", brand:"프랜차이즈(초월)", appGuess:"check", phone:"010-8243-7376", transit:"🚇 기흥역 도보 10분 · 🚌 기흥구청 정류장", note:"불친절 리뷰 1건", closed:false},
+ {id:"winum-gh", name:"위넘 기흥구청점", district:"기흥구", area:"구갈동(기흥구청)", brand:"소규모 체인(위넘)", appGuess:"low", phone:"010-2840-0906", transit:"🚇 기흥역 도보 10분 · 🚌 기흥구청 정류장", note:"", closed:false},
+ {id:"alltop-gh", name:"올탑 기흥구청점", district:"기흥구", area:"구갈동(기흥구청)", brand:"독립 추정", appGuess:"low", phone:"010-8313-0094", transit:"🚌 기흥구청 정류장", note:"더집중 옆 건물", closed:false},
+ {id:"jaksim-gh", name:"작심 용인기흥구청점", district:"기흥구", area:"구갈동(기흥구청)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"031-287-0910", transit:"🚌 기흥구청 정류장", note:"작심 자체 앱 운영 브랜드, 유인 09~01시", closed:false},
+ {id:"ggsam-gh", name:"공간샘 기흥구청점", district:"기흥구", area:"구갈동(기흥구청)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-9971-7667", transit:"🚌 기흥구청 정류장", note:"24시", closed:false},
+ {id:"jaksim-sg", name:"작심 용인신갈점", district:"기흥구", area:"신갈동", brand:"프랜차이즈(작심)", appGuess:"high", phone:"031-281-0910", transit:"🚌 신갈오거리 정류장", note:"유인 09~22:30", closed:false},
+ {id:"ggsam-sg", name:"공간샘스터디오피스 용인신갈점", district:"기흥구", area:"신갈동", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-8979-5901", transit:"🚌 신갈오거리 정류장", note:"24시, 오피스형", closed:false},
+ {id:"ocean-sang", name:"오션 용인상갈점", district:"기흥구", area:"상갈동", brand:"소규모 체인(오션)", appGuess:"low", phone:"010-6367-7905", transit:"🚇 상갈역 도보 5분", note:"시설 노후 리뷰 있음", closed:false},
+ {id:"lang-kn", name:"랭 강남대점", district:"기흥구", area:"구갈동(강남대)", brand:"프랜차이즈(랭)", appGuess:"check", phone:"031-274-0300", transit:"🚈 강남대역 도보 3분", note:"유인 09~23시, 카페 병행", closed:false},
+
+ /* ---------- 기흥구 · 동백·중동 ---------- */
+ {id:"anding-db", name:"앤딩 용인동백역점", district:"기흥구", area:"동백(동백역)", brand:"자사(앤딩)", appGuess:"own", phone:"031-282-5888", transit:"🚈 동백역 도보 3분", note:"자사 지점 — 영역보호(400m) 기준점", closed:false},
+ {id:"dio-db", name:"디오스터디카페 (동백)", district:"기흥구", area:"동백(동백역)", brand:"독립 추정", appGuess:"low", phone:"010-4612-3051", transit:"🚈 동백역 도보 2분", note:"앤딩 인접 경쟁점, modoo 홈페이지", closed:false},
+ {id:"chosim-db", name:"초심 (중동)", district:"기흥구", area:"동백(동백역)", brand:"독립 추정", appGuess:"low", phone:"010-2511-1829", transit:"🚈 동백역 도보 3분", note:"앤딩 반경 100m 내 경쟁점, 지정석 운영", closed:false},
+ {id:"yeolgong-db", name:"열공 (동백역타워)", district:"기흥구", area:"동백(동백역)", brand:"독립 추정", appGuess:"low", phone:"031-758-4516", transit:"🚈 동백역 바로 앞", note:"앤딩 인접 경쟁점, 부정 리뷰 다수", closed:false},
+ {id:"leheim-db", name:"르하임 용인동백점", district:"기흥구", area:"동백(동백역)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"031-8067-6394", transit:"🚈 동백역 도보 5분", note:"유인 09~22:30", closed:false},
+ {id:"ggsam-db", name:"공간샘 동백점", district:"기흥구", area:"동백(북측)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-6486-3270", transit:"🚌 동백이마트·훼미리프라자 정류장", note:"유인 09:30~22시", closed:false},
+ {id:"elalma-db", name:"엘알마 스터디라운지 (동백)", district:"기흥구", area:"동백(북측)", brand:"독립 추정", appGuess:"low", phone:"031-548-0911", transit:"🚌 동백이마트 정류장", note:"독서실 병행", closed:false},
+ {id:"dandan-db", name:"단단 용인동백점", district:"기흥구", area:"동백(북측)", brand:"독립 추정", appGuess:"low", phone:"010-9293-2536", transit:"🚈 어정역 도보 10분", note:"", closed:false},
+ {id:"poten-db", name:"포텐 용인동백점", district:"기흥구", area:"동백(북측)", brand:"소규모 체인(포텐)", appGuess:"low", phone:"", transit:"🚌 백현마을 정류장", note:"전화 미등록, 역북포텐과 동일 브랜드", closed:false},
+ {id:"dreamhigh-db", name:"드림하이 (동백)", district:"기흥구", area:"동백(북측)", brand:"독립 추정", appGuess:"low", phone:"010-3405-8209", transit:"🚌 백현마을 정류장", note:"유인 10~22시", closed:false},
+
+ /* ---------- 기흥구 · 마북·언남·청덕 ---------- */
+ {id:"ian-gs", name:"이안 구성점 (마북동)", district:"기흥구", area:"마북·언남·청덕", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 마북동·연원마을 정류장 (구성역 1km)", note:"전화 미등록", closed:false},
+ {id:"guru-mb", name:"그루 용인마북동센터", district:"기흥구", area:"마북·언남·청덕", brand:"프랜차이즈(그루)", appGuess:"check", phone:"", transit:"🚌 구성동주민센터 정류장", note:"전화 미등록", closed:false},
+ {id:"wefirst-en", name:"위퍼스트 용인언남점", district:"기흥구", area:"마북·언남·청덕", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 언남동 멀티프라자 인근", note:"전화 미등록", closed:false},
+ {id:"runwith-cd", name:"런위드 청덕센터", district:"기흥구", area:"마북·언남·청덕", brand:"독립 추정", appGuess:"low", phone:"070-8018-6242", transit:"🚌 물푸레마을 정류장", note:"24시", closed:false},
+
+ /* ---------- 기흥구 · 흥덕·서천·영덕·보라 ---------- */
+ {id:"jaksim-hd", name:"작심 용인흥덕점", district:"기흥구", area:"흥덕·서천·영덕", brand:"프랜차이즈(작심)", appGuess:"high", phone:"050-71339-4180", transit:"🚌 흥덕마을 정류장", note:"24시, 그룹스터디룸 보유", closed:false},
+ {id:"daily-hd", name:"데일리 흥덕지구점", district:"기흥구", area:"흥덕·서천·영덕", brand:"소규모 체인(데일리)", appGuess:"low", phone:"", transit:"🚌 흥덕마을 정류장", note:"전화 미등록, 역북점과 동일 브랜드", closed:false},
+ {id:"muhan-sc", name:"무한도전 (서천)", district:"기흥구", area:"흥덕·서천·영덕", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 서천마을 정류장", note:"⚠ 등록 번호 이상 — 운영 확인 필요", closed:false},
+ {id:"sgong-yd", name:"성공 (영덕동)", district:"기흥구", area:"흥덕·서천·영덕", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 영덕동 정류장 (기흥역 1.7km)", note:"용구대로점과 동일 업주 가능성 — 중복 확인", closed:false},
+ {id:"panda-br", name:"판다 (보라동)", district:"기흥구", area:"보라동", brand:"독립 추정", appGuess:"low", phone:"050-71391-4417", transit:"🚌 보라동·민속촌입구 정류장", note:"", closed:false},
+ {id:"jaksim-br", name:"작심 (보라동)", district:"기흥구", area:"보라동", brand:"프랜차이즈(작심)", appGuess:"high", phone:"", transit:"🚌 한보라마을 정류장", note:"전화 미등록, 유인 08~01시", closed:false},
+
+ /* ---------- 처인구 ---------- */
+ {id:"chungdam-kr", name:"청담 김량장점", district:"처인구", area:"김량장·역북", brand:"프랜차이즈(청담) 추정", appGuess:"check", phone:"010-5523-7391", transit:"🚈 김량장역 도보 4분", note:"독서실 병행", closed:false},
+ {id:"topbrain", name:"탑브레인 (역북동)", district:"처인구", area:"김량장·역북", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚈 명지대역 도보 10분", note:"정보 부족 — 현장 확인 권장", closed:false},
+ {id:"daily-yb", name:"데일리 역북점", district:"처인구", area:"김량장·역북", brand:"소규모 체인(데일리)", appGuess:"low", phone:"031-336-3676", transit:"🚈 명지대역 도보 10분", note:"시간당 1,000원 저가형", closed:false},
+ {id:"poten-yb", name:"역북포텐", district:"처인구", area:"김량장·역북", brand:"소규모 체인(포텐)", appGuess:"low", phone:"010-5878-1772", transit:"🚈 명지대역 도보 10분", note:"데일리 역북점과 같은 골목", closed:false},
+ {id:"gorim1st", name:"고림1st 스터디카페", district:"처인구", area:"고림동", brand:"독립 추정", appGuess:"low", phone:"031-333-2003", transit:"🚌 고림지구 정류장 (김량장역 버스 10분)", note:"담요·독서대 제공", closed:false},
+ {id:"didim-gr", name:"디딤 용인센터 (고림동)", district:"처인구", area:"고림동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 고림지구 정류장", note:"전화 미등록", closed:false},
+ {id:"plana-dj", name:"플랜에이 용인둔전센터", district:"처인구", area:"포곡읍", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"010-7171-4559", transit:"🚈 둔전역 도보 4분", note:"24시", closed:false},
+ {id:"c21-pg", name:"21세기 (포곡 둔전리)", district:"처인구", area:"포곡읍", brand:"독립 추정", appGuess:"low", phone:"031-322-3521", transit:"🚈 둔전역 도보 8분", note:"", closed:false},
+ {id:"coop-mh", name:"쿱스터디 (모현 왕산리)", district:"처인구", area:"모현읍(외대)", brand:"독립 추정", appGuess:"low", phone:"031-339-4392", transit:"🚌 한국외대 정류장 (광역 1303 등)", note:"외대 상권, 24시", closed:false},
+ {id:"sc-mh", name:"스터디카페 (모현 왕산리)", district:"처인구", area:"모현읍(외대)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 한국외대 정류장", note:"상호 미상, 쿱스터디와 같은 건물", closed:false},
+];
+
+const VENDORS = ["미확인","고스카","스터디모아","스터디큐브","와우플","자체 앱(프랜차이즈)","제로아이즈","픽코","SSAMCAFE","기타"];
+const VENDOR_COLOR = {"픽코":"var(--pikko)","제로아이즈":"var(--zero)","고스카":"var(--goska)","와우플":"#B07C10","SSAMCAFE":"#7A5C3E","스터디모아":"#4E8098","스터디큐브":"#8E5BA6","자체 앱(프랜차이즈)":"#6B5CA5","기타":"#8A8F98"};
+const APP_GUESS_BADGE = {high:["앱 가능성 높음","b-app-high"], check:["앱 확인 필요","b-app-check"], low:["앱 가능성 낮음","b-app-low"], own:["자사 지점","b-app-high"]};
+
+/* ========== 저장 어댑터 (window.storage → localStorage 폴백) ========== */
+const SKEY = "yongin-studycafe-checklist-v1";
+const Storage = {
+  async load(){
+    if (window.storage && window.storage.get){
+      for (let i=0;i<3;i++){
+        try{ const r = await window.storage.get(SKEY); return r ? JSON.parse(r.value) : {}; }
+        catch(e){ if(i===2) break; await new Promise(s=>setTimeout(s, 300*(i+1))); }
+      }
+      return {};
+    }
+    try{ const v = localStorage.getItem(SKEY); return v ? JSON.parse(v) : {}; }catch(e){ return {}; }
+  },
+  async save(data){
+    const str = JSON.stringify(data);
+    if (window.storage && window.storage.set){
+      for (let i=0;i<3;i++){
+        try{ await window.storage.set(SKEY, str); return true; }
+        catch(e){ if(i===2) return false; await new Promise(s=>setTimeout(s, 300*(i+1))); }
+      }
+    }
+    try{ localStorage.setItem(SKEY, str); return true; }catch(e){ return false; }
+  }
+};
+
+/* ========== 상태 ========== */
+let state = {};
+let filter = {district:"전체", status:"전체", targetOnly:false, nonresOnly:false, sortOcc:false, q:""};
+let saveTimer = null;
+
+function vs(id){
+  if(!state[id]) state[id] = {appResult:"미확인", vendor:"미확인", target:false, nonres:false, lockerTotal:"", lockerUsed:"", memo:"", status:"todo"};
+  const s = state[id];
+  if(s.lockerTotal===undefined) s.lockerTotal="";
+  if(s.lockerUsed===undefined) s.lockerUsed="";
+  if(s.lockerDate===undefined) s.lockerDate="";
+  if(!Array.isArray(s.lockerHistory)) s.lockerHistory=[];
+  if(s.nonres===undefined) s.nonres=false;
+  return s;
+}
+function lockerOcc(s){
+  const t = parseInt(s.lockerTotal,10), u = parseInt(s.lockerUsed,10);
+  if(!(t>0) || isNaN(u) || u<0) return null;
+  return Math.min(100, Math.round(u/t*100));
+}
+function occColor(p){
+  if(p>=70) return {bg:"var(--target-bg)", fg:"var(--target)", bar:"var(--target)"};
+  if(p>=40) return {bg:"var(--warn-bg)", fg:"var(--warn)", bar:"var(--warn)"};
+  return {bg:"var(--low-bg)", fg:"var(--low)", bar:"var(--low)"};
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    const ok = await Storage.save(state);
+    if(!ok) toast("저장 실패 — 백업(JSON)을 권장합니다");
+  }, 400);
+}
+function calcStatus(s){
+  if(lockerOcc(s)!==null) return "done";
+  if (s.vendor!=="미확인" || s.appResult!=="미확인" || s.target || s.nonres || (s.memo||"").trim()) return "doing";
+  return "todo";
+}
+function matchQuery(v){
+  if(!filter.q) return true;
+  const q = filter.q.toLowerCase();
+  return (v.name+" "+v.brand+" "+v.area+" "+(v.transit||"")+" "+(v.note||"")).toLowerCase().includes(q);
+}
+
+/* ========== 렌더 ========== */
+function render(){
+  renderSummary();
+  renderFilters();
+  renderList();
+}
+
+function renderSummary(){
+  const active = VENUES.filter(v=>!v.closed);
+  const done = active.filter(v=>calcStatus(vs(v.id))==="done").length;
+  document.getElementById("pDone").textContent = done;
+  document.getElementById("pTotal").textContent = active.length;
+  document.getElementById("pBar").style.width = active.length? (done/active.length*100)+"%" : "0";
+
+  const counts = {};
+  VENDORS.slice(1).forEach(x=>counts[x]=0);
+  let targets=0, nonres=0, occSum=0, occN=0;
+  VENUES.forEach(v=>{
+    const s = vs(v.id);
+    if(counts[s.vendor]!==undefined) counts[s.vendor]++;
+    if(s.target) targets++;
+    if(s.nonres) nonres++;
+    const o = lockerOcc(s);
+    if(o!==null){ occSum+=o; occN++; }
+  });
+  const t = document.getElementById("tallies");
+  t.innerHTML = "";
+  const mk = (label,val,color)=>{
+    const d = document.createElement("div"); d.className="tally";
+    d.innerHTML = (color?`<span class="dot" style="background:${color}"></span>`:"")+`${label} <b>${val}</b>`;
+    return d;
+  };
+  t.appendChild(mk("🔒 평균 점유율", occN? Math.round(occSum/occN)+"% ("+occN+"곳)" : "—", null));
+  t.appendChild(mk("⭐ 전환타깃", targets, null));
+  t.appendChild(mk("🏠 비상주 추천", nonres, null));
+  t.appendChild(mk("픽코", counts["픽코"], VENDOR_COLOR["픽코"]));
+  t.appendChild(mk("고스카", counts["고스카"], VENDOR_COLOR["고스카"]));
+
+  /* 점유율 구간별 매장 나열 */
+  const bandsEl = document.getElementById("occBands");
+  const withOcc = VENUES.map(v=>({v, o:lockerOcc(vs(v.id))})).filter(x=>x.o!==null);
+  const bands = [
+    {label:"90%↑", note:"", test:o=>o>=90},
+    {label:"70%↑", note:"", test:o=>o>=70&&o<90},
+    {label:"60%↑", note:"", test:o=>o>=60&&o<70},
+    {label:"20%↓", note:"🏠 비상주로 추천", test:o=>o>10&&o<=20},
+    {label:"10%↓", note:"🏠 비상주로 추천", test:o=>o<=10},
+  ];
+  bandsEl.innerHTML = "";
+  let anyBand = false;
+  bands.forEach(b=>{
+    const hit = withOcc.filter(x=>b.test(x.o)).sort((a,c)=>c.o-a.o);
+    if(!hit.length) return;
+    anyBand = true;
+    const row = document.createElement("div"); row.className="oband";
+    row.innerHTML = `<span class="ob-label">🔒 ${b.label}</span>`
+      + `<span class="ob-names">${hit.map(x=>`<span class="ob-name" data-n="${esc(x.v.name)}">${esc(x.v.name)} ${x.o}%</span>`).join("")}</span>`
+      + (b.note?`<span class="ob-note">${b.note}</span>`:"");
+    bandsEl.appendChild(row);
+  });
+  if(!anyBand) bandsEl.innerHTML = `<div class="occbands-empty">점유율이 기록되면 90%↑ / 70%↑ / 60%↑ / 20%↓ / 10%↓ 구간별로 매장이 여기에 표시됩니다</div>`;
+  bandsEl.querySelectorAll(".ob-name").forEach(el=>{
+    el.onclick = ()=>{
+      const q = el.dataset.n;
+      document.getElementById("searchInput").value = q;
+      filter.q = q; renderList();
+      document.getElementById("list").scrollIntoView({behavior:"smooth"});
+    };
+  });
+}
+
+function renderFilters(){
+  const f = document.getElementById("filters");
+  f.innerHTML = "";
+  ["전체","수지구","기흥구","처인구"].forEach(d=>{
+    const c = document.createElement("button"); c.className="chip"+(filter.district===d?" on":"");
+    c.textContent = d; c.onclick = ()=>{filter.district=d; render();};
+    f.appendChild(c);
+  });
+  [["전체","전체"],["todo","미조사"],["done","완료"]].forEach(([k,l])=>{
+    const c = document.createElement("button"); c.className="chip"+(filter.status===k?" on":"");
+    c.textContent = l; c.onclick = ()=>{filter.status=k; render();};
+    f.appendChild(c);
+  });
+  const so = document.createElement("button"); so.className="chip tg"+(filter.sortOcc?" on":"");
+  so.textContent = "🔒 점유율순"; so.onclick = ()=>{filter.sortOcc=!filter.sortOcc; render();};
+  f.appendChild(so);
+  const tg = document.createElement("button"); tg.className="chip tg"+(filter.targetOnly?" on":"");
+  tg.textContent = "⭐ 타깃만"; tg.onclick = ()=>{filter.targetOnly=!filter.targetOnly; render();};
+  f.appendChild(tg);
+  const nr = document.createElement("button"); nr.className="chip tg"+(filter.nonresOnly?" on":"");
+  nr.textContent = "🏠 비상주만"; nr.onclick = ()=>{filter.nonresOnly=!filter.nonresOnly; render();};
+  f.appendChild(nr);
+}
+
+const openSet = new Set();
+
+function renderList(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  let items = VENUES.filter(v=>{
+    const s = vs(v.id);
+    const st = calcStatus(s);
+    if(filter.district!=="전체" && v.district!==filter.district) return false;
+    if(filter.status!=="전체" && st!==filter.status) return false;
+    if(filter.targetOnly && !s.target) return false;
+    if(filter.nonresOnly && !s.nonres) return false;
+    if(!matchQuery(v)) return false;
+    return true;
+  });
+  if(filter.sortOcc){
+    items = items.slice().sort((a,b)=>{
+      const oa = lockerOcc(vs(a.id)), ob = lockerOcc(vs(b.id));
+      return (ob===null?-1:ob) - (oa===null?-1:oa);
+    });
+    items.forEach(v=> list.appendChild(buildVenue(v, vs(v.id), calcStatus(vs(v.id)))));
+  } else {
+    let lastArea = null;
+    items.forEach(v=>{
+      const areaKey = v.district+" · "+v.area;
+      if(areaKey !== lastArea){
+        lastArea = areaKey;
+        const cnt = VENUES.filter(x=>x.district===v.district && x.area===v.area).length;
+        const h = document.createElement("div"); h.className="area-head";
+        h.innerHTML = `${esc(areaKey)} <span class="cnt">${cnt}곳</span>`;
+        list.appendChild(h);
+      }
+      list.appendChild(buildVenue(v, vs(v.id), calcStatus(vs(v.id))));
+    });
+  }
+  if(!items.length){
+    const e = document.createElement("div"); e.className="empty";
+    e.textContent = "조건에 맞는 매장이 없습니다";
+    list.appendChild(e);
+  }
+}
+
+function buildVenue(v, s, st){
+  const el = document.createElement("div");
+  el.className = "venue"+(openSet.has(v.id)?" open":"")+(v.closed?" closed":"");
+
+  const [gLabel, gClass] = APP_GUESS_BADGE[v.appGuess];
+  const vendorBadge = s.vendor!=="미확인"
+    ? `<span class="badge b-vendor" style="background:${VENDOR_COLOR[s.vendor]||'#8A8F98'}">${esc(s.vendor)}</span>` : "";
+  const appBadge = s.appResult!=="미확인"
+    ? `<span class="badge ${s.appResult==="있음"?"b-app-high":"b-app-low"}">앱 ${s.appResult}</span>`
+    : `<span class="badge ${gClass}">${gLabel}</span>`;
+  const occ = lockerOcc(s);
+  const occBadge = occ!==null
+    ? `<span class="badge" style="background:${occColor(occ).bg};color:${occColor(occ).fg}">🔒 ${occ}%</span>` : "";
+  const nrBadge = s.nonres ? `<span class="badge b-nr">🏠 비상주</span>` : "";
+
+  const head = document.createElement("div");
+  head.className = "v-head";
+  head.innerHTML = `
+    <span class="v-status ${st}"></span>
+    <div class="v-main">
+      <div class="v-name">${s.target?'<span class="star">⭐</span>':''}${esc(v.name)}</div>
+      <div class="v-sub">
+        ${occBadge}${nrBadge}${appBadge}${vendorBadge}
+        <span>${esc(v.brand)}</span>
+      </div>
+      ${v.transit?`<div class="transit-hint">${esc(v.transit)}</div>`:""}
+    </div>
+    <span class="v-toggle">▼</span>`;
+  head.onclick = ()=>{ openSet.has(v.id)?openSet.delete(v.id):openSet.add(v.id); render(); };
+  el.appendChild(head);
+
+  const body = document.createElement("div");
+  body.className = "v-body";
+
+  if(v.note){
+    const n = document.createElement("div"); n.className="note-box";
+    n.textContent = "메모: "+v.note;
+    body.appendChild(n);
+  }
+
+  /* ① 사물함 점유율 — 최우선 조사 항목, 날짜별 기록 누적 */
+  body.appendChild(secLabel("① 사물함 점유율 (상권분석)"));
+  const lk = document.createElement("div");
+  lk.className = "grid2";
+  const lu = document.createElement("div"); lu.className="fld";
+  lu.innerHTML = `<label>이용 중 사물함 (이름표·자물쇠 기준)</label>`;
+  const luIn = document.createElement("input"); luIn.type="text"; luIn.inputMode="numeric"; luIn.placeholder="예: 47";
+  luIn.value = s.lockerUsed||"";
+  lu.appendChild(luIn);
+  const lt = document.createElement("div"); lt.className="fld";
+  lt.innerHTML = `<label>총 사물함 수</label>`;
+  const ltIn = document.createElement("input"); ltIn.type="text"; ltIn.inputMode="numeric"; ltIn.placeholder="예: 60";
+  ltIn.value = s.lockerTotal||"";
+  lt.appendChild(ltIn);
+  lk.appendChild(lu); lk.appendChild(lt);
+  body.appendChild(lk);
+
+  const occView = document.createElement("div");
+  const histView = document.createElement("div"); histView.className="hist";
+  const drawOcc = ()=>{
+    const o = lockerOcc(s);
+    if(o===null){ occView.innerHTML = `<div class="occ-none">두 값을 입력하면 점유율이 계산되고 오늘 날짜로 자동 기록됩니다</div>`; return; }
+    const c = occColor(o);
+    const label = o>=70 ? "수요 강함 — 후보 상권 시그널"
+                : o>=40 ? "보통"
+                : (o>20 ? "수요 약함" : "수요 약함 — 🏠 비상주로 추천");
+    occView.innerHTML = `
+      <div class="occ-row"><b style="color:${c.fg}">${o}%</b><span>${label}</span>${s.lockerDate?`<span class="occ-date">기록일 ${s.lockerDate}</span>`:""}</div>
+      <div class="occbar"><div style="width:${o}%;background:${c.bar}"></div></div>`;
+  };
+  const drawHist = ()=>{
+    const h = (s.lockerHistory||[]).slice().sort((a,b)=> a.date<b.date?1:-1);
+    if(!h.length){ histView.innerHTML=""; return; }
+    histView.innerHTML = `<div class="hist-title">점유율 기록 (${h.length}회)</div>` + h.map(e=>{
+      const o = (e.total>0)? Math.min(100, Math.round(e.used/e.total*100)) : "-";
+      return `<div class="hist-row"><span>${e.date}</span><span>${e.used}/${e.total}</span><b>${o}%</b><button class="hist-del" data-d="${e.date}">삭제</button></div>`;
+    }).join("");
+    histView.querySelectorAll(".hist-del").forEach(btn=>{
+      btn.onclick = ()=>{
+        s.lockerHistory = (s.lockerHistory||[]).filter(x=>x.date!==btn.dataset.d);
+        scheduleSave(); drawHist(); renderSummary();
+      };
+    });
+  };
+  drawOcc(); drawHist();
+  body.appendChild(occView);
+  body.appendChild(histView);
+
+  const onLocker = ()=>{
+    s.lockerUsed = luIn.value.replace(/[^0-9]/g,"");
+    s.lockerTotal = ltIn.value.replace(/[^0-9]/g,"");
+    luIn.value = s.lockerUsed; ltIn.value = s.lockerTotal;
+    const t = parseInt(s.lockerTotal,10), u = parseInt(s.lockerUsed,10);
+    if(t>0 && !isNaN(u) && u>=0){
+      s.lockerDate = todayDash();
+      const i = s.lockerHistory.findIndex(x=>x.date===s.lockerDate);
+      const entry = {date:s.lockerDate, total:t, used:u};
+      if(i>=0) s.lockerHistory[i]=entry; else s.lockerHistory.push(entry);
+    }
+    drawOcc(); drawHist(); scheduleSave(); renderSummary();
+  };
+  luIn.oninput = onLocker; ltIn.oninput = onLocker;
+  const refreshHead = ()=>render();
+  luIn.onblur = refreshHead; ltIn.onblur = refreshHead;
+
+  body.appendChild(secLabel("바로가기"));
+  const links = document.createElement("div"); links.className="links";
+  links.innerHTML = `
+    <a class="lnk" target="_blank" href="https://map.naver.com/p/search/${encodeURIComponent(v.name.replace(/\(.*\)/,"").trim()+" 용인")}">🗺 네이버 지도</a>`;
+  body.appendChild(links);
+
+  body.appendChild(secLabel("② 전환 영업 정보"));
+  const res = document.createElement("div");
+
+  const g = document.createElement("div"); g.className="grid2";
+  const appRow = document.createElement("div"); appRow.className="fld";
+  appRow.innerHTML = `<label>전용 앱 사용 여부</label>`;
+  const appPills = document.createElement("div"); appPills.className="pillrow";
+  ["미확인","있음","없음"].forEach(opt=>{
+    const p = document.createElement("button");
+    p.className = "pill"+(s.appResult===opt?" on"+(opt==="있음"?" p-target":""):"");
+    p.textContent = opt;
+    p.onclick = ()=>{ s.appResult = opt; scheduleSave(); render(); };
+    appPills.appendChild(p);
+  });
+  appRow.appendChild(appPills);
+  g.appendChild(appRow);
+
+  const vd = document.createElement("div"); vd.className="fld";
+  vd.innerHTML = `<label>키오스크 벤더 — '있음' 선택 시 활성화</label>`;
+  const sel = document.createElement("select");
+  VENDORS.forEach(x=>{
+    const o = document.createElement("option"); o.value=x; o.textContent=x;
+    if(s.vendor===x) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.disabled = s.appResult!=="있음";
+  sel.onchange = ()=>{ s.vendor = sel.value; scheduleSave(); render(); };
+  vd.appendChild(sel);
+  g.appendChild(vd);
+  res.appendChild(g);
+
+  const memo = document.createElement("div"); memo.className="fld"; memo.style.marginTop="10px";
+  memo.innerHTML = `<label>조사 메모 (담당자·통화 내용·가격대 등)</label>`;
+  const ta = document.createElement("textarea");
+  ta.value = s.memo || "";
+  ta.oninput = ()=>{ s.memo = ta.value; scheduleSave(); };
+  memo.appendChild(ta);
+  res.appendChild(memo);
+  body.appendChild(res);
+
+  const tg = document.createElement("button");
+  tg.className = "tgbtn"+(s.target?" on":"");
+  tg.textContent = s.target ? "⭐ 고스카 전환 타깃 지정됨 (해제하려면 탭)" : "☆ 고스카 전환 타깃으로 지정";
+  tg.onclick = ()=>{ s.target = !s.target; scheduleSave(); render(); };
+  body.appendChild(tg);
+
+  const nr = document.createElement("button");
+  nr.className = "nrbtn"+(s.nonres?" on":"");
+  nr.textContent = s.nonres ? "🏠 비상주 추천 지정됨 (해제하려면 탭)" : "🏠 비상주 추천으로 지정";
+  nr.onclick = ()=>{ s.nonres = !s.nonres; scheduleSave(); render(); };
+  body.appendChild(nr);
+
+  el.appendChild(body);
+  return el;
+}
+
+function secLabel(t){ const d = document.createElement("div"); d.className="sec-label"; d.textContent=t; return d; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ========== 내보내기/백업 ========== */
+function exportCSV(){
+  const head = ["지역","상권","지점명","브랜드","전화","교통","이용중","총사물함","점유율(%)","최근기록일","점유율기록","앱여부","키오스크벤더","전환타깃","비상주추천","조사상태","메모"];
+  const rows = VENUES.map(v=>{
+    const s = vs(v.id);
+    const stMap = {todo:"미조사",doing:"조사중",done:"완료"};
+    const o = lockerOcc(s);
+    const hist = (s.lockerHistory||[]).slice().sort((a,b)=>a.date<b.date?-1:1)
+      .map(e=>`${e.date} ${e.used}/${e.total}`).join(" | ");
+    return [v.district, v.area, v.name, v.brand, v.phone, (v.transit||"").replace(/🚇|🚌|🚈/g,"").trim(),
+            s.lockerUsed||"", s.lockerTotal||"", o===null?"":o, s.lockerDate||"", hist,
+            s.appResult, s.vendor,
+            s.target?"O":"", s.nonres?"O":"",
+            stMap[calcStatus(s)], (s.memo||"").replace(/\n/g," / ")];
+  });
+  const csv = "\uFEFF"+[head, ...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  download(new Blob([csv], {type:"text/csv;charset=utf-8"}), "용인시_스터디카페_조사_"+today()+".csv");
+  toast("CSV 파일을 내려받았습니다");
+}
+function backupJSON(){
+  download(new Blob([JSON.stringify(state,null,2)], {type:"application/json"}), "용인조사_백업_"+today()+".json");
+  toast("백업 파일을 내려받았습니다");
+}
+function restoreJSON(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      state = JSON.parse(r.result);
+      scheduleSave(); render();
+      toast("복원 완료");
+    }catch(e){ toast("복원 실패 — 파일 형식을 확인해 주세요"); }
+  };
+  r.readAsText(file);
+  ev.target.value = "";
+}
+function download(blob, name){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function today(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"); }
+function todayDash(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+/* ========== 시작 ========== */
+document.getElementById("searchInput").addEventListener("input", (e)=>{
+  filter.q = e.target.value.trim(); renderList();
+});
+(async ()=>{
+  state = await Storage.load() || {};
+  render();
+})();
+</script>
+</body>
+</html>
