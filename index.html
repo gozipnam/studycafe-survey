@@ -29,8 +29,12 @@ header p{color:var(--ink-soft);font-size:13.5px;margin-top:4px}
 .total-strip .tstat span{font-size:11.5px;opacity:.7}
 
 /* 지역 카드 그리드 */
-.grid{display:grid;grid-template-columns:1fr;gap:14px}
+.grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:8px}
 @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+.group-head{font-size:14px;font-weight:800;letter-spacing:.5px;color:var(--ink);margin:18px 2px 10px;display:flex;align-items:baseline;gap:8px}
+.group-head span{font-size:12px;font-weight:600;color:var(--ink-soft)}
+.group-head::before{content:"";display:inline-block;width:4px;height:14px;background:var(--target);border-radius:2px;align-self:center}
+.r-sub{font-size:13px;font-weight:600;color:var(--ink-soft)}
 
 a.region{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;text-decoration:none;color:var(--ink);transition:transform .12s, box-shadow .12s;touch-action:manipulation}
 a.region:active{transform:scale(.985)}
@@ -72,8 +76,10 @@ footer{margin-top:26px;text-align:center;font-size:12px;color:var(--ink-soft)}
 
 <script>
 const REGIONS = [
-  {name:"용인시", path:"yongin/", storageKey:"yongin-studycafe-checklist-v1", total:100, districts:"수지구 52 · 기흥구 38 · 처인구 10", ready:true},
-  {name:"성남시", path:"seongnam/", storageKey:"seongnam-studycafe-checklist-v1", total:84, districts:"분당구 56 · 수정구 14 · 중원구 14", ready:true},
+  {group:"경기", name:"용인시", path:"yongin/", storageKey:"yongin-studycafe-checklist-v1", total:100, districts:"수지구 52 · 기흥구 38 · 처인구 10", ready:true},
+  {group:"경기", name:"성남시", path:"seongnam/", storageKey:"seongnam-studycafe-checklist-v1", total:84, districts:"분당구 56 · 수정구 14 · 중원구 14", ready:true},
+  {group:"서울", name:"강북구", sub:"미아사거리", path:"seoul/gangbuk/", storageKey:"gangbuk-studycafe-checklist-v1", total:16, districts:"미아사거리역 3 · 미아역·수유 6 · 길음뉴타운 7", ready:true},
+  {group:"서울", name:"양천구", sub:"목동역", path:"seoul/yangcheon/", storageKey:"yangcheon-studycafe-checklist-v1", total:17, districts:"목동역 5 · 오목교역 3 · 목동단지 7 · 신정네·신목동 2", ready:true},
 ];
 
 async function loadState(key){
@@ -101,34 +107,45 @@ function statsOf(state){
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 (async ()=>{
-  const grid = document.getElementById("grid");
+  const container = document.getElementById("grid");
+  container.className = "";   // 그룹별 그리드를 내부에 생성
   let sumTotal=0, sumDone=0, sumTargets=0, sumNonres=0;
 
-  for(const r of REGIONS){
-    const st = r.ready ? statsOf(await loadState(r.storageKey)) : {done:0,targets:0,nonres:0,avg:null};
-    if(r.ready){ sumTotal += r.total; sumDone += st.done; sumTargets += st.targets; sumNonres += st.nonres; }
-    const pct = r.total ? Math.round(st.done/r.total*100) : 0;
+  const groups = [...new Set(REGIONS.map(r=>r.group))];
+  for(const gname of groups){
+    const gh = document.createElement("div"); gh.className="group-head";
+    const gcount = REGIONS.filter(r=>r.group===gname).length;
+    gh.innerHTML = `${esc(gname)} <span>${gcount}개 지역</span>`;
+    container.appendChild(gh);
+    const grid = document.createElement("div"); grid.className="grid";
+    container.appendChild(grid);
 
-    const a = document.createElement("a");
-    a.className = "region"+(r.ready?"":" soon");
-    a.href = r.ready ? r.path : "#";
-    a.innerHTML = `
-      <div class="r-top">
-        <span class="r-name">${esc(r.name)}</span>
-        ${r.ready ? `<span class="r-count">${r.total}곳</span>` : `<span class="badge-soon">준비 중</span>`}
-      </div>
-      <div class="r-districts">${esc(r.districts)}</div>
-      <div class="r-progress">
-        <div class="r-prow"><span>사물함 점유율 조사</span><b>${st.done}/${r.total||"—"}</b></div>
-        <div class="pbar"><div style="width:${pct}%"></div></div>
-      </div>
-      <div class="r-tallies">
-        <span class="rt">🔒 평균 점유율 <b>${st.avg!==null? st.avg+"%":"—"}</b></span>
-        <span class="rt">⭐ 전환타깃 <b>${st.targets}</b></span>
-        <span class="rt">🏠 비상주 추천 <b>${st.nonres}</b></span>
-      </div>
-      <div class="r-go">${r.ready ? "조사 시작 →" : "오픈 예정"}</div>`;
-    grid.appendChild(a);
+    for(const r of REGIONS.filter(x=>x.group===gname)){
+      const st = r.ready ? statsOf(await loadState(r.storageKey)) : {done:0,targets:0,nonres:0,avg:null};
+      if(r.ready){ sumTotal += r.total; sumDone += st.done; sumTargets += st.targets; sumNonres += st.nonres; }
+      const pct = r.total ? Math.round(st.done/r.total*100) : 0;
+
+      const a = document.createElement("a");
+      a.className = "region"+(r.ready?"":" soon");
+      a.href = r.ready ? r.path : "#";
+      a.innerHTML = `
+        <div class="r-top">
+          <span class="r-name">${esc(r.name)}${r.sub?` <span class="r-sub">${esc(r.sub)}</span>`:""}</span>
+          ${r.ready ? `<span class="r-count">${r.total}곳</span>` : `<span class="badge-soon">준비 중</span>`}
+        </div>
+        <div class="r-districts">${esc(r.districts)}</div>
+        <div class="r-progress">
+          <div class="r-prow"><span>사물함 점유율 조사</span><b>${st.done}/${r.total||"—"}</b></div>
+          <div class="pbar"><div style="width:${pct}%"></div></div>
+        </div>
+        <div class="r-tallies">
+          <span class="rt">🔒 평균 점유율 <b>${st.avg!==null? st.avg+"%":"—"}</b></span>
+          <span class="rt">⭐ 전환타깃 <b>${st.targets}</b></span>
+          <span class="rt">🏠 비상주 추천 <b>${st.nonres}</b></span>
+        </div>
+        <div class="r-go">${r.ready ? "조사 시작 →" : "오픈 예정"}</div>`;
+      grid.appendChild(a);
+    }
   }
 
   const strip = document.getElementById("totalStrip");
