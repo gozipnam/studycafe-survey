@@ -151,7 +151,7 @@ header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
 <div class="wrap">
   <header>
     <h1>성남시 스터디카페 조사 체크리스트</h1>
-    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 84곳 · 도보시간 추정치)</p>
+    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 89곳 · 신흥역·정자역 특별조사 반영 · 도보시간 추정치)</p>
   </header>
 
   <div class="summary">
@@ -181,7 +181,7 @@ header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ========== 매장 기본 데이터 (73곳) ==========
+/* ========== 매장 기본 데이터 (89곳) ==========
    기존 ID는 절대 변경 금지 — 저장된 조사 데이터가 ID에 연결되어 있음 */
 const VENUES = [
  /* ---------- 분당구 · 서현동(서현역) ---------- */
@@ -209,16 +209,19 @@ const VENUES = [
  {id:"bluemoon-sn", name:"블루문 수내점", district:"분당구", area:"수내동(푸른마을)", brand:"독립 추정", appGuess:"low", phone:"031-712-5530", transit:"🚌 푸른마을 정류장", note:"24시, 복도 소음 리뷰", closed:false},
  /* ---------- 분당구 · 정자동(정자역) ---------- */
  {id:"dplace-jj", name:"디플레이스 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 정자역 도보 8분", note:"무인, 음료 유료 불만 리뷰", closed:false},
- {id:"gongbon-jj", name:"공본 분당정자센터", district:"분당구", area:"정자동(정자역)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-9953-8305", transit:"🚇 정자역 도보 7분", note:"24시, 용인 공본과 동일 브랜드", closed:false},
+ {id:"gongbon-jj", name:"공본 분당정자센터", district:"분당구", area:"정자동(정자역)", brand:"독립(공본 체인)", appGuess:"high", phone:"010-9953-8305", transit:"🚇 정자역 도보 7분", note:"24시, 용인 공본과 동일 브랜드", closed:false},
  {id:"choisangwi-jj", name:"최상위 관리형 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"010-7604-4882", transit:"🚇 정자역 도보 6분", note:"관리형, 유인 08~01시", closed:false},
  {id:"giant-jj", name:"거인의어깨 스터디카페", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"031-716-6688", transit:"🚇 정자역 도보 8분", note:"관리형·입시컨설팅 병행", closed:false},
+ {id:"coffeelib-jj", name:"커피랑도서관 정자역점", district:"분당구", area:"정자동(정자역)", brand:"프랜차이즈(커피랑도서관)", appGuess:"check", phone:"", transit:"🚇 정자역 도보 6분", note:"월드비터 4층, 무인 키오스크 입장, 시간당 2,000원 [26.07 신규]", closed:false},
+ {id:"jaksim-jj", name:"작심 분당정자점", district:"분당구", area:"정자동(정자역)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"", transit:"🚇 정자역 도보 7분", note:"작심 자체 앱 운영 브랜드 [26.07 신규]", closed:false},
+ {id:"splanet-jj", name:"스터디플래닛 정자센터독서실", district:"분당구", area:"정자동(정자역)", brand:"독립 추정", appGuess:"low", phone:"031-698-3109", transit:"🚇 정자역 도보 12분 · 🚌 정자프라자 정류장", note:"저가, 관리 부실 리뷰 — 전환 소구점 [26.07 신규]", closed:false},
  /* ---------- 분당구 · 정자동 ---------- */
  {id:"wpencil-jj", name:"화이트펜슬 분당정자점", district:"분당구", area:"정자동", brand:"소규모 체인(화이트펜슬)", appGuess:"low", phone:"010-3602-9650", transit:"🚇 정자역 도보 9분", note:"24시", closed:false},
  /* ---------- 분당구 · 정자동(느티마을) ---------- */
  {id:"lagom-jj", name:"라곰 스터디카페", district:"분당구", area:"정자동(느티마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 정자역 도보 10분", note:"시간당 1,000원 저가형", closed:false},
  {id:"timeyou-jj", name:"타임유 스터디카페 (정자)", district:"분당구", area:"정자동(느티마을)", brand:"소규모 체인(타임유)", appGuess:"low", phone:"", transit:"🚇 정자역 도보 10분", note:"라곰 옆 건물, 24시", closed:false},
  /* ---------- 분당구 · 이매동(이매촌) ---------- */
- {id:"gongbon-im", name:"공본 분당이매센터", district:"분당구", area:"이매동(이매촌)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-6523-8745", transit:"🚇 서현역 도보 8분", note:"24시", closed:false},
+ {id:"gongbon-im", name:"공본 분당이매센터", district:"분당구", area:"이매동(이매촌)", brand:"독립(공본 체인)", appGuess:"high", phone:"010-6523-8745", transit:"🚇 서현역 도보 8분", note:"24시", closed:false},
  {id:"oz24-im", name:"오즈24 스터디센터 (구 이매독서실)", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"031-704-8266", transit:"🚇 서현역 도보 8분", note:"독서실 전환형", closed:false},
  {id:"thelib-im", name:"더라이브러리", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 이매역 도보 10분", note:"유인 10~22시, 시간당 1,500원", closed:false},
  {id:"plant-im", name:"스터디카페 플랜트", district:"분당구", area:"이매동(이매촌)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 이매역 도보 10분", note:"더라이브러리와 같은 골목", closed:false},
@@ -246,7 +249,7 @@ const VENUES = [
  /* ---------- 분당구 · 판교(백현동) ---------- */
  {id:"yeolgong-pg", name:"열공스터디카페 판교점", district:"분당구", area:"판교(백현동)", brand:"소규모 체인(열공)", appGuess:"low", phone:"", transit:"🚌 백현마을 정류장", note:"", closed:false},
  /* ---------- 분당구 · 서판교(판교동) ---------- */
- {id:"gongbon-wpg2", name:"공본 서판교2센터", district:"분당구", area:"서판교(판교동)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-3187-1810", transit:"🚌 판교동 정류장", note:"24시", closed:false},
+ {id:"gongbon-wpg2", name:"공본 서판교2센터", district:"분당구", area:"서판교(판교동)", brand:"독립(공본 체인)", appGuess:"high", phone:"010-3187-1810", transit:"🚌 판교동 정류장", note:"24시", closed:false},
  /* ---------- 분당구 · 서판교(운중동) ---------- */
  {id:"bion-pg", name:"비온탑 스터디카페 판교점", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"010-5957-5100", transit:"🚌 운중동 리버스토리 정류장", note:"24시", closed:false},
  {id:"gbgg-uj", name:"공부공간 스터디카페", district:"분당구", area:"서판교(운중동)", brand:"독립 추정", appGuess:"low", phone:"031-705-5501", transit:"🚌 운중동 스타타워 정류장", note:"24시", closed:false},
@@ -256,7 +259,7 @@ const VENUES = [
  {id:"jaksim-mg", name:"작심 분당미금점", district:"분당구", area:"금곡동(미금역)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"010-9350-9473", transit:"🚇 미금역 도보 2분", note:"작심 자체 앱 운영 브랜드", closed:false},
  {id:"tozs-mg", name:"토즈 미금스터디센터", district:"분당구", area:"금곡동(미금역)", brand:"프랜차이즈(토즈)", appGuess:"high", phone:"031-786-0303", transit:"🚇 미금역 도보 4분", note:"토즈 자체 앱 운영 브랜드", closed:false},
  {id:"beable-mg", name:"비에이블 분당미금센터", district:"분당구", area:"금곡동(미금역)", brand:"소규모 체인(비에이블)", appGuess:"low", phone:"010-2524-8866", transit:"🚇 미금역 도보 5분", note:"용인 비에이블과 동일 브랜드, 유인 09~22시", closed:false},
- {id:"gongbon-mg", name:"공본 분당미금역센터", district:"분당구", area:"금곡동(미금역)", brand:"독립(공본 체인)", appGuess:"low", phone:"010-6606-1917", transit:"🚇 미금역 도보 5분", note:"24시", closed:false},
+ {id:"gongbon-mg", name:"공본 분당미금역센터", district:"분당구", area:"금곡동(미금역)", brand:"독립(공본 체인)", appGuess:"high", phone:"010-6606-1917", transit:"🚇 미금역 도보 5분", note:"24시", closed:false},
  /* ---------- 분당구 · 금곡동(청솔마을) ---------- */
  {id:"sngg-bd", name:"시간과공간 분당센터", district:"분당구", area:"금곡동(청솔마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 청솔마을 정류장", note:"용인 시간과공간과 동일 브랜드", closed:false},
  /* ---------- 분당구 · 구미동(오리역) ---------- */
@@ -275,6 +278,7 @@ const VENUES = [
  {id:"reading-sj", name:"리딩스터디카페", district:"수정구", area:"신흥동(수정구청)", brand:"독립 추정", appGuess:"low", phone:"010-4704-7477", transit:"🚇 8호선 신흥역 도보 8분", note:"06~02시, 스카이라운지석 특화, 신축", closed:false},
  /* ---------- 수정구 · 신흥동 ---------- */
  {id:"hear-sh", name:"히어스터디카페 신흥동점", district:"수정구", area:"신흥동", brand:"독립 추정", appGuess:"low", phone:"010-8201-2372", transit:"🚇 신흥역 도보 10분", note:"06~01시", closed:false},
+ {id:"plana-sinheung", name:"플랜에이 성남신흥센터", district:"수정구", area:"신흥동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"", transit:"🚇 신흥역 도보 1분", note:"24시, 위례·용인 플랜에이와 동일 브랜드 [26.07 신규]", closed:false},
  /* ---------- 수정구 · 수진동 ---------- */
  {id:"chosim-tp", name:"초심 성남태평역점", district:"수정구", area:"수진동", brand:"소규모 체인(초심)", appGuess:"low", phone:"", transit:"🚇 태평역 도보 10분", note:"용인 초심과 동일 브랜드", closed:false},
  /* ---------- 수정구 · 단대동 ---------- */
@@ -294,6 +298,8 @@ const VENUES = [
  {id:"oreum-mr", name:"오름스터디카페", district:"중원구", area:"성남동(모란역)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 모란역 도보 2분", note:"유인 09:30~23시", closed:false},
  /* ---------- 중원구 · 성남동 ---------- */
  {id:"adream-jw", name:"스터디카페 에이드림 중원구청점", district:"중원구", area:"성남동", brand:"독립 추정", appGuess:"low", phone:"010-5522-5762", transit:"🚌 중원구청 정류장 (모란역 도보 10분)", note:"24시, 안면인식 입장", closed:false},
+ /* ---------- 중원구 · 중앙동(신흥역) ---------- */
+ {id:"jaksim-sinheung", name:"작심 성남신흥점", district:"중원구", area:"중앙동(신흥역)", brand:"프랜차이즈(작심)", appGuess:"high", phone:"", transit:"🚇 신흥역 도보 8분", note:"중앙동 352 8층, 작심 자체 앱 운영 브랜드 [26.07 신규]", closed:false},
  /* ---------- 중원구 · 여수동(성남시청) ---------- */
  {id:"awesome-sc", name:"어썸덕스터디카페", district:"중원구", area:"여수동(성남시청)", brand:"독립 추정", appGuess:"low", phone:"050-71355-0013", transit:"🚌 성남시청 정류장", note:"09~02시 무인, 스카이프라자 10층", closed:false},
  /* ---------- 중원구 · 도촌·여수동 ---------- */
@@ -314,6 +320,7 @@ const VENUES = [
  /* ---------- 중원구 · 은행동 ---------- */
  {id:"153-eh", name:"153스터디카페", district:"중원구", area:"은행동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 은행동 정류장", note:"", closed:false},
  {id:"holic-eh", name:"홀릭 (은행동)", district:"중원구", area:"은행동", brand:"소규모 체인(홀릭)", appGuess:"low", phone:"", transit:"🚌 은행시장 정류장", note:"", closed:false},
+
 ];
 
 const VENDORS = ["미확인","고스카","스터디모아","스터디큐브","와우플","자체 앱(프랜차이즈)","제로아이즈","픽코","SSAMCAFE","기타"];

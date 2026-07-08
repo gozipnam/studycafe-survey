@@ -151,7 +151,7 @@ header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
 <div class="wrap">
   <header>
     <h1>용인시 스터디카페 조사 체크리스트</h1>
-    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 100곳 · 도보시간 추정치)</p>
+    <p>① 사물함 점유율 상권분석 · ② 고스카 전환 타깃 · ③ 비상주 추천 (2026.07 기준 101곳 · 도담마을·동천·성복 특별조사 반영 · 도보시간 추정치)</p>
   </header>
 
   <div class="summary">
@@ -181,19 +181,22 @@ header p{color:var(--ink-soft);font-size:12.5px;margin-top:2px}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ========== 매장 기본 데이터 (73곳) ==========
+/* ========== 매장 기본 데이터 (101곳) ==========
    기존 ID는 절대 변경 금지 — 저장된 조사 데이터가 ID에 연결되어 있음 */
 const VENUES = [
+ /* ---------- 수지구 · 죽전동(도담마을) — 26.07 팀장요청 특별조사 ---------- */
+ {id:"mentorim7-jj", name:"멘토림7 죽전점", district:"수지구", area:"죽전동(도담마을)", brand:"프랜차이즈(멘토즈 계열)", appGuess:"high", phone:"", transit:"🚌 도담마을·현암로 정류장", note:"프리미엄형, 전화 미등록, 센타프라자 2층 — 도담마을 앞, 24시 [26.07 확인]", closed:false},
+ {id:"studybank-jj", name:"스터디뱅크 죽전독서실", district:"수지구", area:"죽전동(도담마을)", brand:"독립 추정", appGuess:"low", phone:"031-548-2903", transit:"🚌 도담마을·현암로 정류장 (벤포스타 7층)", note:"캡슐형 독서실 병행, 산소발생기 등 특화, 유인 08:30~01:30 [26.07 확인]", closed:false},
+ {id:"hongong-jd", name:"혼공스터디카페 죽전점", district:"수지구", area:"죽전동(도담마을)", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 죽전동 그린피아 정류장", note:"그린피아 504호 — 운영시간 확인 필요 [26.07 신규]", closed:false},
+
  /* ---------- 수지구 · 죽전동(단국대 상권) ---------- */
  {id:"richi-jj", name:"리치스터디카페 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"070-4126-2709", transit:"🚌 꽃메마을·단국대 정류장 (죽전역 버스 환승)", note:"24시 무인", closed:false},
  {id:"olla-dku", name:"올라스터디카페 죽전단국대점", district:"수지구", area:"죽전동(단국대)", brand:"소규모 체인(올라)", appGuess:"low", phone:"050-71344-1198", transit:"🚌 단국대입구 정류장", note:"24시", closed:false},
  {id:"lang-dku", name:"랭 단국대점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(랭)", appGuess:"check", phone:"031-897-5785", transit:"🚌 단국대입구 정류장", note:"유인 10~22시, 스터디룸 방음 불만 리뷰", closed:false},
  {id:"gaon-dku", name:"가온스터디카페 단국대점", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"010-4423-9161", transit:"🚌 단국대입구 정류장", note:"대학생 수요 위주", closed:false},
  {id:"leheim-jj", name:"르하임 용인죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"010-4490-6364", transit:"🚌 꽃메마을·단국대치과병원 정류장", note:"리뷰 16건, 비교적 신규", closed:false},
- {id:"mentorim7-jj", name:"멘토림7 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(멘토즈 계열)", appGuess:"high", phone:"", transit:"🚌 꽃메마을 정류장", note:"프리미엄형, 전화 미등록", closed:false},
- {id:"studybank-jj", name:"스터디뱅크 죽전독서실", district:"수지구", area:"죽전동(단국대)", brand:"독립 추정", appGuess:"low", phone:"031-548-2903", transit:"🚌 현암로 벤포스타 인근", note:"캡슐형 독서실 병행, 산소발생기 등 특화", closed:false},
  {id:"ggsam-jj", name:"공간샘 죽전점", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"010-5275-7200", transit:"🚌 꽃메마을 정류장", note:"24시", closed:false},
- {id:"guru-jj", name:"그루 수지죽전센터", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(그루)", appGuess:"check", phone:"010-6363-9146", transit:"🚇 죽전역 도보 14분", note:"", closed:false},
+ {id:"guru-jj", name:"그루 수지죽전센터", district:"수지구", area:"죽전동(단국대)", brand:"프랜차이즈(그루)", appGuess:"check", phone:"010-6363-9146", transit:"🚇 죽전역 도보 14분", note:"24시, 그랜드프라자 502호 [26.07 확인]", closed:false},
 
  /* ---------- 수지구 · 풍덕천동(수지구청역) ---------- */
  {id:"gongbuin", name:"공부인 수지구청센터", district:"수지구", area:"풍덕천동(수지구청역)", brand:"독립 추정", appGuess:"low", phone:"031-8017-5730", transit:"🚇 수지구청역 도보 6분", note:"", closed:false},
@@ -220,21 +223,21 @@ const VENUES = [
  {id:"plana-sh", name:"플랜A프리미엄 (상현)", district:"수지구", area:"상현동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"031-898-0099", transit:"🚌 만현마을 정류장 (성복역 도보 12분)", note:"유인 10~22시", closed:false},
 
  /* ---------- 수지구 · 성복동 ---------- */
- {id:"mentors-sb", name:"멘토즈 수지성복점", district:"수지구", area:"성복동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-2923-6488", transit:"🚇 성복역 도보 4분", note:"리뷰 27건 지역 상위", closed:false},
+ {id:"mentors-sb", name:"멘토즈 수지성복점", district:"수지구", area:"성복동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-2923-6488", transit:"🚇 성복역 도보 4분", note:"리뷰 27건 지역 상위 — 26.07 재확인 4.9점, 권역 1위", closed:false},
  {id:"guru-sb", name:"그루 성복센터점", district:"수지구", area:"성복동", brand:"프랜차이즈(그루)", appGuess:"check", phone:"031-266-3031", transit:"🚇 성복역 도보 6분", note:"06~24시 운영", closed:false},
- {id:"gongbon", name:"공본 수지성복센터", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"010-8603-2035", transit:"🚌 성복자이·LG빌리지 정류장 (성복역 1.3km)", note:"홈페이지=카톡채널(pf.kakao.com) → 친구톡 발송 후보", closed:false, presetChannel:{kakao:true}},
- {id:"plana-sb", name:"플랜에이 수지성복센터", district:"수지구", area:"성복동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"010-3702-8454", transit:"🚇 성복역 도보 8분", note:"", closed:false},
+ {id:"gongbon", name:"공본 수지성복센터", district:"수지구", area:"성복동", brand:"독립(공본 체인)", appGuess:"high", phone:"010-8603-2035", transit:"🚌 성복자이·LG빌리지 정류장 (성복역 1.3km)", note:"홈페이지=카톡채널(pf.kakao.com) → 친구톡 발송 후보 · 공본 자체 앱(구글플레이) 확인 [26.07 갱신]", closed:false, presetChannel:{kakao:true}},
+ {id:"plana-sb", name:"플랜에이 수지성복센터", district:"수지구", area:"성복동", brand:"소규모 체인(플랜에이)", appGuess:"low", phone:"010-3702-8454", transit:"🚇 성복역 도보 8분", note:"24시, 관리 호평 리뷰 [26.07 갱신]", closed:false},
  {id:"spl24-sb", name:"스플24 (성복)", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"070-5222-3699", transit:"🚇 성복역 도보 5분", note:"", closed:false},
- {id:"sumanhwi-sb", name:"수만휘 관리형 (성복)", district:"수지구", area:"성복동", brand:"프랜차이즈(수만휘) 추정", appGuess:"check", phone:"031-261-4364", transit:"🚇 성복역 도보 3분", note:"관리형(감독형)", closed:false},
+ {id:"sumanhwi-sb", name:"수만휘 관리형 (성복)", district:"수지구", area:"성복동", brand:"프랜차이즈(수만휘) 추정", appGuess:"check", phone:"031-261-4364", transit:"🚇 성복역 도보 3분", note:"관리형(감독형), 모의고사 의무 등 강한 관리 리뷰 [26.07 갱신]", closed:false},
  {id:"rowa-sb", name:"로와 성복점", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚌 성복동 서측(LG자이) 마을버스", note:"전화 미등록, 리뷰 호불호", closed:false},
  {id:"nobel-sb", name:"노벨 수지성복센터", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 성복역 도보 10분", note:"전화 미등록, 현장 확인 필요", closed:false},
  {id:"soyu-sb", name:"소유 스터디오피스카페 수지성복점", district:"수지구", area:"성복동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 성복역 도보 3분", note:"전화 미등록, 현장 확인 필요", closed:false},
 
  /* ---------- 수지구 · 동천동 ---------- */
- {id:"mentors-dc", name:"멘토즈 수지동천점", district:"수지구", area:"동천동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-6749-4460", transit:"🚇 동천역 도보 10분", note:"리뷰에 카카오톡 채널 소통 언급", closed:false},
- {id:"winum-dc", name:"위넘 수지동천점", district:"수지구", area:"동천동", brand:"소규모 체인(위넘)", appGuess:"low", phone:"010-5752-8629", transit:"🚇 동천역 도보 8분", note:"", closed:false},
- {id:"gibon-dc", name:"기본스터디카페 수지점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"070-3739-6866", transit:"🚇 동천역 도보 12분", note:"할인 이벤트 잦음", closed:false},
- {id:"sigan-dc", name:"시간과공간 수지점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"010-2420-0247", transit:"🚇 동천역 도보 9분", note:"동천동 최신축 언급 리뷰", closed:false},
+ {id:"mentors-dc", name:"멘토즈 수지동천점", district:"수지구", area:"동천동", brand:"프랜차이즈(멘토즈)", appGuess:"high", phone:"010-6749-4460", transit:"🚇 동천역 도보 10분", note:"리뷰에 카카오톡 채널 소통 언급 — 26.07 재확인, 무인+카톡채널 응대 호평", closed:false},
+ {id:"winum-dc", name:"위넘 수지동천점", district:"수지구", area:"동천동", brand:"소규모 체인(위넘)", appGuess:"low", phone:"010-5752-8629", transit:"🚇 동천역 도보 8분", note:"24시, 6인 스터디룸 보유 · 구글 표기는 '위넌' — 네이버 상호 대조 필요 [26.07 갱신]", closed:false},
+ {id:"gibon-dc", name:"기본스터디카페 수지점", district:"수지구", area:"동천동", brand:"소규모 체인(기본)", appGuess:"high", phone:"070-3739-6866", transit:"🚇 동천역 도보 12분", note:"할인 이벤트 잦음 · KEEP ON 자체 앱 확인, 서울 목동 기본과 동일 브랜드 [26.07 갱신]", closed:false},
+ {id:"sigan-dc", name:"시간과공간 수지점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"010-2420-0247", transit:"🚇 동천역 도보 9분", note:"동천동 최신축 언급 리뷰 · 진상 이용객 관리 부재 리뷰 — 전환 소구점 [26.07 갱신]", closed:false},
  {id:"timeyou-dc", name:"타임유 용인동천점", district:"수지구", area:"동천동", brand:"소규모 체인(타임유)", appGuess:"low", phone:"010-4240-4470", transit:"🚇 동천역 도보 2분", note:"역세권 최상", closed:false},
  {id:"wide-dc", name:"와이드스터디 플래닛카페 동천점", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 동천역 도보 8분", note:"환불 관련 부정 리뷰 있음", closed:false},
  {id:"top24h-dc", name:"TOP24H 스터디카페 (동천)", district:"수지구", area:"동천동", brand:"독립 추정", appGuess:"low", phone:"", transit:"🚇 동천역 도보 9분", note:"유인 09:30~22시", closed:false},
@@ -253,7 +256,7 @@ const VENUES = [
  {id:"leheim-bj", name:"르하임 용인보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(르하임)", appGuess:"check", phone:"031-308-9351", transit:"🚇 보정역 도보 7분", note:"09~22:30 유인", closed:false},
  {id:"sizak-bj", name:"시작 용인보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(시작)", appGuess:"check", phone:"010-8082-5561", transit:"🚇 보정역 도보 5분", note:"modoo 홈페이지, 시간충전 프로모션 리뷰", closed:false},
  {id:"ggsam-bj", name:"공간샘 보정점", district:"기흥구", area:"보정동(죽전로)", brand:"프랜차이즈(공간샘)", appGuess:"check", phone:"", transit:"🚇 보정역 도보 7분", note:"전화번호 미등록", closed:false},
- {id:"gongbon-bj", name:"공본 (보정)", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"031-2520-0926", transit:"🚇 보정역 도보 5분", note:"05~22시, 수지성복점과 동일 브랜드", closed:false},
+ {id:"gongbon-bj", name:"공본 (보정)", district:"기흥구", area:"보정동(죽전로)", brand:"독립(공본 체인)", appGuess:"high", phone:"031-2520-0926", transit:"🚇 보정역 도보 5분", note:"05~22시, 수지성복점과 동일 브랜드 · 공본 자체 앱 [26.07 갱신]", closed:false},
  {id:"beable-bj", name:"비에이블 (보정)", district:"기흥구", area:"보정동(죽전로)", brand:"소규모 체인(비에이블)", appGuess:"low", phone:"010-5723-4685", transit:"🚇 보정역 도보 6분", note:"", closed:false},
  {id:"pops-bj", name:"팝스 용인죽전점", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"010-5240-1579", transit:"🚇 보정역 도보 10분", note:"", closed:false},
  {id:"sgong", name:"성공스터디카페 (용구대로)", district:"기흥구", area:"보정동(죽전로)", brand:"독립 추정", appGuess:"low", phone:"010-4502-5041", transit:"🚇 보정역 도보 13분", note:"신규 매장 추정, 영덕점과 동일 업주 가능성", closed:false},
